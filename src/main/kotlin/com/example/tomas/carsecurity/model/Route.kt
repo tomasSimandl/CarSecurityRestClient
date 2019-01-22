@@ -10,10 +10,10 @@ data class Route(
         val id: Long = 0,
 
         @OneToOne
-        val startPosition: Position,
+        val startPosition: Position?,
 
         @OneToOne
-        val endPosition: Position,
+        val endPosition: Position?,
 
         @OneToMany(mappedBy = "route", fetch = FetchType.LAZY)
         val positions: List<Position>,
