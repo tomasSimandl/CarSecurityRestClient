@@ -21,5 +21,7 @@ data class Route(
         val length: Float = 0f,
 
         @ManyToOne
-        val car: Car
+        val car: Car,
+
+        val note: String = ""
 )
