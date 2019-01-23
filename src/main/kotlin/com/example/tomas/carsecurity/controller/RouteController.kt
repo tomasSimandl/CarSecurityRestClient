@@ -3,8 +3,6 @@ package com.example.tomas.carsecurity.controller
 import com.example.tomas.carsecurity.model.Route
 import com.example.tomas.carsecurity.repository.CarRepository
 import com.example.tomas.carsecurity.repository.RouteRepository
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
@@ -66,8 +64,9 @@ class RouteController {
                   @RequestParam(value = "page", defaultValue = "0") page: Int,
                   @RequestParam(value = "limit", defaultValue = "15") limit: Int): String {
 
-        // TODO It is necessary return all routes data? Maybe use only (name, note, ...)
-        val routes = routeRepository.findAllByCarId(carId, PageRequest.of(page, limit))
+
+        val validLimit = if (limit <= 0) 1 else limit
+        val routes = routeRepository.findAllByCarId(carId, PageRequest.of(page, validLimit))
 
         return Route.gson.toJson(routes.content)
     }

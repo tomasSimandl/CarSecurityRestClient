@@ -32,7 +32,7 @@ class RouteControllerTest : BaseControllerTest() {
         // Testing
         assertEquals(200, result.statusCodeValue)
 
-        val regex = Regex("\\{\"route_id\":\"(\\d+)\"\\}")
+        val regex = Regex("\\{\"route_id\":\"(\\d+)\"}")
         assertTrue(result.body!!.contains(regex))
 
         logger.debug("Removing created route")
@@ -86,6 +86,30 @@ class RouteControllerTest : BaseControllerTest() {
     }
 
     @Test
+    fun `get route without positions`() {
+
+        logger.info("Testing get of route without position")
+
+        val request = HashMap<String, String>()
+        request["route_id"] = "5"
+        val url = addParams(getUrl(ROUTE_MAPPING), request)
+        logger.debug("Request url: $url")
+
+        val result = testTemplate.getForEntity(url, String::class.java)
+
+        // Testing
+        assertEquals(200, result.statusCodeValue)
+
+        val route = JsonParser().parse(result.body).asJsonObject
+
+        assertEquals("0.0", route.get("length").asString)
+        assertEquals("2", route.get("car_id").asString)
+        assertFalse(route.has("start_position_id"))
+        assertFalse(route.has("end_position_id"))
+        assertNull(route.get("note"))
+    }
+
+    @Test
     fun `get route invalid route id`() {
 
         logger.info("Testing get of route with invalid id")
@@ -100,5 +124,124 @@ class RouteControllerTest : BaseControllerTest() {
         // Testing
         assertEquals(200, result.statusCodeValue)
         assertEquals("{\"error\":\"Invalid parameters.\"}", result.body)
+    }
+
+    @Test
+    fun `get routes success`() {
+
+        logger.info("Testing get of routes")
+
+        val request = HashMap<String, String>()
+        request["car_id"] = "1"
+        val url = addParams(getUrl(ROUTE_MAPPING), request)
+        logger.debug("Request url: $url")
+
+        val result = testTemplate.getForEntity(url, String::class.java)
+
+        // Testing
+        assertEquals(200, result.statusCodeValue)
+
+        val routes = JsonParser().parse(result.body).asJsonArray
+        assertEquals(3, routes.size())
+
+        val expectedIds = arrayListOf(1, 2, 4)
+        for (route in routes) {
+            val id = route.asJsonObject.get("id").asInt
+            assertTrue(expectedIds.contains(id))
+            expectedIds.remove(id)
+        }
+
+        assertTrue(expectedIds.isEmpty())
+    }
+
+    @Test
+    fun `get routes with pages`() {
+
+        logger.info("Testing get of routes with pages")
+
+        val request = HashMap<String, String>()
+        request["car_id"] = "1"
+        request["page"] = "0"
+        request["limit"] = "2"
+        val url = addParams(getUrl(ROUTE_MAPPING), request)
+        logger.debug("Request url: $url")
+
+        val result = testTemplate.getForEntity(url, String::class.java)
+
+        // Testing
+        assertEquals(200, result.statusCodeValue)
+
+        val routes = JsonParser().parse(result.body).asJsonArray
+        assertEquals(2, routes.size())
+
+        val expectedIds = arrayListOf(1, 2)
+        for (route in routes) {
+            val id = route.asJsonObject.get("id").asInt
+            assertTrue(expectedIds.contains(id))
+            expectedIds.remove(id)
+        }
+
+        assertTrue(expectedIds.isEmpty())
+    }
+
+    @Test
+    fun `get routes with pages of size 1`() {
+
+        logger.info("Testing get of routes with pages of size 1")
+
+        val request = HashMap<String, String>()
+        request["car_id"] = "1"
+        request["page"] = "2"
+        request["limit"] = "1"
+        val url = addParams(getUrl(ROUTE_MAPPING), request)
+        logger.debug("Request url: $url")
+
+        val result = testTemplate.getForEntity(url, String::class.java)
+
+        // Testing
+        assertEquals(200, result.statusCodeValue)
+
+        val routes = JsonParser().parse(result.body).asJsonArray
+        assertEquals(1, routes.size())
+        assertEquals(4, routes[0].asJsonObject.get("id").asInt)
+    }
+
+    @Test
+    fun `get routes with pages of size 0`() {
+
+        logger.info("Testing get of routes with pages of size 0")
+
+        val request = HashMap<String, String>()
+        request["car_id"] = "1"
+        request["page"] = "0"
+        request["limit"] = "0"
+        val url = addParams(getUrl(ROUTE_MAPPING), request)
+        logger.debug("Request url: $url")
+
+        val result = testTemplate.getForEntity(url, String::class.java)
+
+        // Testing
+        assertEquals(200, result.statusCodeValue)
+        val routes = JsonParser().parse(result.body).asJsonArray
+        assertEquals(1, routes.size())
+    }
+
+    @Test
+    fun `get routes of car without routes`() {
+
+        logger.info("Testing get of routes of car without routes")
+
+        val request = HashMap<String, String>()
+        request["car_id"] = "3"
+        val url = addParams(getUrl(ROUTE_MAPPING), request)
+        logger.debug("Request url: $url")
+
+        val result = testTemplate.getForEntity(url, String::class.java)
+
+        // Testing
+        assertEquals(200, result.statusCodeValue)
+
+        val routes = JsonParser().parse(result.body).asJsonArray
+        assertEquals(0, routes.size())
     }
 }
