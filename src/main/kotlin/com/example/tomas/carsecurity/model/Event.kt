@@ -10,14 +10,18 @@ data class Event(
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         val id: Long = 0,
 
+        val name: String = "",
+
         @ManyToOne
         val eventType: EventType,
 
-        val time: Timestamp,
+        val time: Timestamp?,
 
         @OneToOne
         val position: Position,
 
         @ManyToOne
-        val car: Car
+        val car: Car,
+
+        val note: String = ""
 )
