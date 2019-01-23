@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 
 const val ROUTE_MAPPING = "/route"
+const val EVENT_MAPPING = "/event"
 
 
 // TODO maybe move to some other file. This is Mapping file not JSON file
