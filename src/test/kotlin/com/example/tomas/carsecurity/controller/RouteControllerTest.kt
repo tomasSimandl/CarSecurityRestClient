@@ -84,4 +84,21 @@ class RouteControllerTest : BaseControllerTest() {
         assertEquals("6", route.get("end_position_id").asString)
         assertNull(route.get("note"))
     }
+
+    @Test
+    fun `get route invalid route id`() {
+
+        logger.info("Testing get of route with invalid id")
+
+        val request = HashMap<String, String>()
+        request["route_id"] = "111"
+        val url = addParams(getUrl(ROUTE_MAPPING), request)
+        logger.debug("Request url: $url")
+
+        val result = testTemplate.getForEntity(url, String::class.java)
+
+        // Testing
+        assertEquals(200, result.statusCodeValue)
+        assertEquals("{\"error\":\"Invalid parameters.\"}", result.body)
+    }
 }

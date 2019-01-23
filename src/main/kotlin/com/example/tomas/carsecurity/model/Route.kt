@@ -1,5 +1,7 @@
 package com.example.tomas.carsecurity.model
 
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.JsonSerializer
 import javax.persistence.*
@@ -28,9 +30,9 @@ data class Route(
         val note: String = ""
 ) {
 
-    companion object RouteSerializer {
+    companion object RouteSerializer : GeneralSerializer() {
 
-        val serializer: JsonSerializer<Route> = JsonSerializer { route, _, _ ->
+        private val serializer: JsonSerializer<Route> = JsonSerializer { route, _, _ ->
             val jsonRoute = JsonObject()
 
             jsonRoute.addProperty("id", route.id)
@@ -42,5 +44,7 @@ data class Route(
 
             jsonRoute
         }
+
+        val gson = getGson(Route::class.java, serializer)
     }
 }

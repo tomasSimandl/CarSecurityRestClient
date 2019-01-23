@@ -57,11 +57,7 @@ class RouteController {
             return createJsonSingle("error", "Invalid parameters.")
         }
 
-        val gsonBuilder = GsonBuilder()
-        gsonBuilder.registerTypeAdapter(Route::class.java, Route.serializer)
-        val customGson = gsonBuilder.create()
-
-        return customGson.toJson(route.get())
+        return Route.gson.toJson(route.get())
     }
 
     @ResponseBody
@@ -72,6 +68,7 @@ class RouteController {
 
         // TODO It is necessary return all routes data? Maybe use only (name, note, ...)
         val routes = routeRepository.findAllByCarId(carId, PageRequest.of(page, limit))
-        return Gson().toJson(routes.get())
+
+        return Route.gson.toJson(routes.content)
     }
 }
