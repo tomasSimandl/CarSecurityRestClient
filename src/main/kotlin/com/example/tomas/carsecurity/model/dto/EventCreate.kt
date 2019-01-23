@@ -10,7 +10,7 @@ data class EventCreate(
 
         val time: Timestamp?,
 
-        val position: PositionCreate,
+        val position: PositionCreate?,
 
         val carId: Long,
 
