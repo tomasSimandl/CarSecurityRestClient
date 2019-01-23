@@ -4,15 +4,14 @@ import com.example.tomas.carsecurity.model.Route
 import com.example.tomas.carsecurity.repository.CarRepository
 import com.example.tomas.carsecurity.repository.RouteRepository
 import com.google.gson.Gson
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.*
-
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseBody
 import java.util.*
 
 @Controller
@@ -26,6 +25,7 @@ class RouteController {
     @Autowired
     private lateinit var carRepository: CarRepository
 
+    @ResponseBody
     @PostMapping(ROUTE_MAPPING)
     fun createRoute(@RequestParam(value = "car_id") carId: Long): String {
 
@@ -38,13 +38,14 @@ class RouteController {
         }
 
         val route = Route(0, null, null, ArrayList(), 0f, car.get())
-        routeRepository.save(route)
+        routeRepository.save(route) // TODO check if is created
 
         logger.debug("Created new route.")
         return createJsonSingle("route_id", route.id.toString())
     }
 
 
+    @ResponseBody
     @GetMapping(ROUTE_MAPPING, params = ["route_id"])
     fun getRoute(@RequestParam(value = "route_id") routeId: Long): String {
 
@@ -57,6 +58,7 @@ class RouteController {
         return Gson().toJson(route.get())
     }
 
+    @ResponseBody
     @GetMapping(ROUTE_MAPPING, params = ["car_id"])
     fun getRoutes(@RequestParam(value = "car_id") carId: Long,
                   @RequestParam(value = "page", defaultValue = "0") page: Int,
