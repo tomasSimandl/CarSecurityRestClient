@@ -1,5 +1,7 @@
 package com.example.tomas.carsecurity.model
 
+import com.google.gson.JsonObject
+import com.google.gson.JsonSerializer
 import javax.persistence.*
 
 @Entity(name = "route")
@@ -24,4 +26,21 @@ data class Route(
         val car: Car,
 
         val note: String = ""
-)
+) {
+
+    companion object RouteSerializer {
+
+        val serializer: JsonSerializer<Route> = JsonSerializer { route, _, _ ->
+            val jsonRoute = JsonObject()
+
+            jsonRoute.addProperty("id", route.id)
+            jsonRoute.addProperty("length", route.length)
+            jsonRoute.addProperty("note", route.note)
+            jsonRoute.addProperty("car_id", route.car.id)
+            jsonRoute.addProperty("end_position_id", route.endPosition?.id)
+            jsonRoute.addProperty("start_position_id", route.startPosition?.id)
+
+            jsonRoute
+        }
+    }
+}
