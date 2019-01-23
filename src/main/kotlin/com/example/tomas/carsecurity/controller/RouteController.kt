@@ -62,7 +62,8 @@ class RouteController {
                   @RequestParam(value = "page", defaultValue = "0") page: Int,
                   @RequestParam(value = "limit", defaultValue = "15") limit: Int): String {
 
+        // TODO It is necessary return all routes data? Maybe use only (name, note, ...)
         val routes = routeRepository.findAllByCarId(carId, PageRequest.of(page, limit))
-        return Gson().toJson(routes)
+        return Gson().toJson(routes.get())
     }
 }
