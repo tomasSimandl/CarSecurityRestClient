@@ -4,6 +4,7 @@ import com.example.tomas.carsecurity.model.Route
 import com.example.tomas.carsecurity.repository.CarRepository
 import com.example.tomas.carsecurity.repository.RouteRepository
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import java.util.*
+
 
 @Controller
 class RouteController {
@@ -37,8 +39,8 @@ class RouteController {
             return createJsonSingle("error", "Invalid parameters.")
         }
 
-        val route = Route(0, null, null, ArrayList(), 0f, car.get())
-        routeRepository.save(route) // TODO check if is created
+        var route = Route(0, null, null, ArrayList(), 0f, car.get())
+        route = routeRepository.save(route)
 
         logger.debug("Created new route.")
         return createJsonSingle("route_id", route.id.toString())
@@ -55,7 +57,11 @@ class RouteController {
             return createJsonSingle("error", "Invalid parameters.")
         }
 
-        return Gson().toJson(route.get())
+        val gsonBuilder = GsonBuilder()
+        gsonBuilder.registerTypeAdapter(Route::class.java, Route.serializer)
+        val customGson = gsonBuilder.create()
+
+        return customGson.toJson(route.get())
     }
 
     @ResponseBody
