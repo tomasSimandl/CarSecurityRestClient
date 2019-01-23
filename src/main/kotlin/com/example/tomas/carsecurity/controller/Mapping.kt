@@ -15,3 +15,14 @@ fun createJsonSingle(key: String, value: String): String{
 
     return Gson().toJson(jsonObject)
 }
+
+fun addParams(url: String, params: Map<String, String>): String {
+    var newUrl = url
+    var appendChar = '?'
+
+    for(value in params){
+        newUrl = newUrl.plus("$appendChar${value.key}=${value.value}")
+        appendChar = '&'
+    }
+    return newUrl
+}
