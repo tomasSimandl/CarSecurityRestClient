@@ -12,10 +12,20 @@ data class Position(
         @ManyToOne
         val route: Route?,
 
+        @Column(nullable = false)
         val latitude: Float = 0f,
+
+        @Column(nullable = false)
         val longitude: Float = 0f,
+
+        @Column(nullable = false)
         val altitude: Float = 0f,
+
         val time: Timestamp?,
+
+        @Column(nullable = false)
         val accuracy: Float = 0f,
+
+        @Column(nullable = false)
         val speed: Float = 0f
 )

@@ -1,7 +1,5 @@
 package com.example.tomas.carsecurity.model
 
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.JsonSerializer
 import javax.persistence.*
@@ -20,13 +18,16 @@ data class Route(
         val endPosition: Position?,
 
         @OneToMany(mappedBy = "route", fetch = FetchType.LAZY)
-        val positions: List<Position>,
+        val positions: List<Position> = ArrayList(),
 
+        @Column(nullable = false)
         val length: Float = 0f,
 
         @ManyToOne
+        @JoinColumn(nullable = false)
         val car: Car,
 
+        @Column(nullable = false)
         val note: String = ""
 ) {
 

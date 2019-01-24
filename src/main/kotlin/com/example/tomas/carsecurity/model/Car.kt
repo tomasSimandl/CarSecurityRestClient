@@ -9,16 +9,19 @@ data class Car(
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         val id: Long = 0,
 
-        @ManyToOne
+        @ManyToOne()
+        @JoinColumn(nullable = false)
         val user: User,
 
         @OneToMany(mappedBy = "car", fetch = FetchType.LAZY)
-        val routes: List<Route>,
+        val routes: List<Route> = ArrayList(),
 
         @OneToMany(mappedBy = "car", fetch = FetchType.LAZY)
-        val events: List<Event>,
+        val events: List<Event> = ArrayList(),
 
-        val name: String,
+        @Column(nullable = false)
+        val name: String = "",
 
-        val icon: String
+        @Column(nullable = false)
+        val icon: String = ""
 )

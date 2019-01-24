@@ -9,6 +9,9 @@ data class EventType(
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         val id: Long = 0,
 
-        val name: String,
-        val description: String
+        @Column(nullable = false)
+        val name: String = "",
+
+        @Column(nullable = false)
+        val description: String = ""
 )
