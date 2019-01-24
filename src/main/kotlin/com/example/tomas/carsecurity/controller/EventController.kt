@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 @Controller
 class EventController {
@@ -36,20 +38,23 @@ class EventController {
 
     @ResponseBody
     @PostMapping(EVENT_MAPPING)
-    fun createEvent(@RequestParam(value = "event") eventCreate: EventCreate): String {
+    fun createEvent(@RequestParam(value = "event") eventCreate: EventCreate, request: HttpServletRequest,
+                    response: HttpServletResponse): String {
 
         logger.info("Creating new event.")
 
         val car = carRepository.findById(eventCreate.carId)
         if (!car.isPresent) {
             logger.debug("Car id does not exists.")
-            return createJsonSingle("error", "Invalid parameters.")
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return ""
         }
 
         val eventType = eventTypeRepository.findById(eventCreate.eventTypeId)
         if (!eventType.isPresent) {
             logger.debug("EventType id does not exists.")
-            return createJsonSingle("error", "Invalid parameters.")
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return ""
         }
 
         val position = Position(0, null, eventCreate.position.latitude, eventCreate.position.longitude,

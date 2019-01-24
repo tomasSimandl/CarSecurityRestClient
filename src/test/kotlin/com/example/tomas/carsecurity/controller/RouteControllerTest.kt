@@ -57,8 +57,8 @@ class RouteControllerTest : BaseControllerTest() {
         val result = testTemplate.postForEntity(url, request, String::class.java)
 
         // Testing
-        assertEquals(200, result.statusCodeValue)
-        assertEquals("{\"error\":\"Invalid parameters.\"}", result.body)
+        assertEquals(400, result.statusCodeValue)
+        assertNull(result.body)
     }
 
     @Test
@@ -122,8 +122,8 @@ class RouteControllerTest : BaseControllerTest() {
         val result = testTemplate.getForEntity(url, String::class.java)
 
         // Testing
-        assertEquals(200, result.statusCodeValue)
-        assertEquals("{\"error\":\"Invalid parameters.\"}", result.body)
+        assertEquals(400, result.statusCodeValue)
+        assertNull(result.body)
     }
 
     @Test
