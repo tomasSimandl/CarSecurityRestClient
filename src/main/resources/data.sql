@@ -34,3 +34,4 @@ INSERT INTO position (id, accuracy, altitude, latitude, longitude, speed, time, 
 UPDATE route SET start_position_id = 2, end_position_id = 6 WHERE id = 1;
 UPDATE route SET start_position_id = 7, end_position_id = 7 WHERE id = 2;
 UPDATE route SET start_position_id = 8, end_position_id = 8 WHERE id = 3;
+UPDATE event SET position_id = 1 WHERE id = 1;

@@ -82,7 +82,7 @@ class RouteControllerTest : BaseControllerTest() {
         assertEquals("1", route.get("car_id").asString)
         assertEquals("2", route.get("start_position_id").asString)
         assertEquals("6", route.get("end_position_id").asString)
-        assertNull(route.get("note"))
+        assertEquals("car 1", route.get("note").asString)
     }
 
     @Test
@@ -106,7 +106,7 @@ class RouteControllerTest : BaseControllerTest() {
         assertEquals("2", route.get("car_id").asString)
         assertFalse(route.has("start_position_id"))
         assertFalse(route.has("end_position_id"))
-        assertNull(route.get("note"))
+        assertEquals("car 5", route.get("note").asString)
     }
 
     @Test
