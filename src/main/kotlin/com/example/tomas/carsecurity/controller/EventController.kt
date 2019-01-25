@@ -32,7 +32,6 @@ class EventController {
     @Autowired
     private lateinit var positionRepository: PositionRepository
 
-    @ResponseBody
     @PostMapping(EVENT_MAPPING)
     fun createEvent(@RequestBody eventCreate: EventCreate, request: HttpServletRequest,
                     response: HttpServletResponse) {
