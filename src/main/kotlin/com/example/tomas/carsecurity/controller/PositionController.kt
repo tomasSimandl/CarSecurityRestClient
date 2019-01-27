@@ -8,9 +8,9 @@ import com.example.tomas.carsecurity.repository.RouteRepository
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -60,7 +60,7 @@ class PositionController {
         try {
             logger.debug("Saving ${savePositions.size} positions to database.")
             positionRepository.saveAll(savePositions)
-        }catch (e: DataIntegrityViolationException){
+        } catch (e: DataIntegrityViolationException) {
             logger.warn("DataIntegrityViolationException when saving positions to DB: ${e.message}")
             response.status = HttpServletResponse.SC_CONFLICT
             return
@@ -68,6 +68,18 @@ class PositionController {
 
         response.status = HttpServletResponse.SC_CREATED
         return
+    }
+
+    @ResponseBody
+    @GetMapping(POSITION_MAPPING, params = ["route_id"])
+    fun getPositions(@RequestParam(value = "route_id") routeId: Long,
+                     @RequestParam(value = "page", defaultValue = "0") page: Int,
+                     @RequestParam(value = "limit", defaultValue = "15") limit: Int): String {
+
+        val validLimit = if (limit <= 0) 1 else limit
+        val positions = positionRepository.findAllByRouteId(routeId, PageRequest.of(page, validLimit))
+
+        return Position.gson.toJson(positions.content)
     }
 
 

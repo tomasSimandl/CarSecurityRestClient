@@ -2,6 +2,8 @@ package com.example.tomas.carsecurity.controller
 
 import com.example.tomas.carsecurity.model.Position
 import com.example.tomas.carsecurity.repository.PositionRepository
+import com.google.gson.JsonParser
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -189,5 +191,115 @@ class PositionControllerTest : BaseControllerTest() {
         headers.contentType = MediaType.APPLICATION_JSON
         val requestData = HttpEntity(requestBody, headers)
         return testTemplate.postForEntity(url, requestData, String::class.java)
+    }
+
+    @Test
+    fun `get positions success`() {
+
+        logger.info("Testing get of positions")
+
+        val request = HashMap<String, String>()
+        request["route_id"] = "1"
+        val url = addParams(getUrl(POSITION_MAPPING), request)
+        logger.debug("Request url: $url")
+
+        val result = testTemplate.getForEntity(url, String::class.java)
+
+        // Testing
+        assertEquals(200, result.statusCodeValue)
+
+        val positions = JsonParser().parse(result.body).asJsonArray
+        assertEquals(5, positions.size())
+
+        val expectedIds = arrayListOf(2, 3, 4, 5, 6)
+        for (position in positions) {
+            val id = position.asJsonObject.get("id").asInt
+            Assertions.assertTrue(expectedIds.contains(id))
+            expectedIds.remove(id)
+        }
+
+        Assertions.assertTrue(expectedIds.isEmpty())
+    }
+
+    @Test
+    fun `get events with pages`() {
+
+        logger.info("Testing get of positions with pages")
+
+        val request = HashMap<String, String>()
+        request["route_id"] = "1"
+        request["page"] = "1"
+        request["limit"] = "1"
+        val url = addParams(getUrl(POSITION_MAPPING), request)
+        logger.debug("Request url: $url")
+
+        val result = testTemplate.getForEntity(url, String::class.java)
+
+        // Testing
+        assertEquals(200, result.statusCodeValue)
+
+        val positions = JsonParser().parse(result.body).asJsonArray
+        assertEquals(1, positions.size())
+        assertEquals(3, positions[0].asJsonObject.get("id").asInt)
+    }
+
+    @Test
+    fun `get events with pages of size 0`() {
+
+        logger.info("Testing get of positions with pages of size 0")
+
+        val request = HashMap<String, String>()
+        request["route_id"] = "1"
+        request["page"] = "0"
+        request["limit"] = "0"
+        val url = addParams(getUrl(POSITION_MAPPING), request)
+        logger.debug("Request url: $url")
+
+        val result = testTemplate.getForEntity(url, String::class.java)
+
+        // Testing
+        assertEquals(200, result.statusCodeValue)
+
+        val positions = JsonParser().parse(result.body).asJsonArray
+        assertEquals(1, positions.size())
+        assertEquals(2, positions[0].asJsonObject.get("id").asInt)
+    }
+
+    @Test
+    fun `get positions of route without positions`() {
+
+        logger.info("Testing get of positions of route without positions")
+
+        val request = HashMap<String, String>()
+        request["route_id"] = "5"
+        val url = addParams(getUrl(POSITION_MAPPING), request)
+        logger.debug("Request url: $url")
+
+        val result = testTemplate.getForEntity(url, String::class.java)
+
+        // Testing
+        assertEquals(200, result.statusCodeValue)
+
+        val positions = JsonParser().parse(result.body).asJsonArray
+        assertEquals(0, positions.size())
+    }
+
+    @Test
+    fun `get positions of not existing route`() {
+
+        logger.info("Testing get of positions of not existing route")
+
+        val request = HashMap<String, String>()
+        request["route_id"] = "111"
+        val url = addParams(getUrl(POSITION_MAPPING), request)
+        logger.debug("Request url: $url")
+
+        val result = testTemplate.getForEntity(url, String::class.java)
+
+        // Testing
+        assertEquals(200, result.statusCodeValue)
+
+        val positions = JsonParser().parse(result.body).asJsonArray
+        assertEquals(0, positions.size())
     }
 }
