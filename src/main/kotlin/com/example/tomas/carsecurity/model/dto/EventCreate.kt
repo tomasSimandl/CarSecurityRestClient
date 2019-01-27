@@ -1,6 +1,6 @@
 package com.example.tomas.carsecurity.model.dto
 
-import java.security.Timestamp
+import java.time.LocalDateTime
 
 data class EventCreate(
 
@@ -8,7 +8,7 @@ data class EventCreate(
 
         val eventTypeId: Long,
 
-        val time: Timestamp?,
+        val time: LocalDateTime,
 
         val position: PositionCreate?,
 

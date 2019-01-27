@@ -45,7 +45,7 @@ class EventControllerTest : BaseControllerTest() {
         val requestBody = "{\n" +
                 "    \"name\": \"Kradez\",\n" +
                 "    \"eventTypeId\": 1,\n" +
-                "    \"time\": null,\n" +
+                "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"carId\": 1,\n" +
                 "    \"note\": \"zmizelo auto\"\n" +
                 "}"
@@ -72,7 +72,13 @@ class EventControllerTest : BaseControllerTest() {
         assertEquals(1L, events.first().car.id)
         assertEquals("zmizelo auto", events.first().note)
         assertNull(events.first().position)
-        assertNull(events.first().time)
+        assertEquals(2019, events.first().time.year)
+        assertEquals(1, events.first().time.month?.value)
+        assertEquals(27, events.first().time.dayOfMonth)
+        assertEquals(10, events.first().time.hour)
+        assertEquals(15, events.first().time.minute)
+        assertEquals(30, events.first().time.second)
+        assertEquals(0, events.first().time.nano)
 
         // Cleaning
         logger.debug("Removing created event")
@@ -88,7 +94,7 @@ class EventControllerTest : BaseControllerTest() {
         val requestBody = "{\n" +
                 "    \"name\": \"Kradez\",\n" +
                 "    \"eventTypeId\": 1,\n" +
-                "    \"time\": null,\n" +
+                "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"carId\": 1,\n" +
                 "    \"note\": \"zmizelo auto\",\n" +
                 "    \"position\": {\n" +
@@ -96,6 +102,7 @@ class EventControllerTest : BaseControllerTest() {
                 "        \"altitude\": 2.2,\n" +
                 "        \"latitude\": 3.3,\n" +
                 "        \"longitude\": 4.4,\n" +
+                "        \"time\": \"2019-01-27T10:15:30\",\n" +
                 "        \"speed\": 5.5\n" +
                 "    }\n" +
                 "}"
@@ -127,7 +134,13 @@ class EventControllerTest : BaseControllerTest() {
         assertEquals(3.3f, events.first().position?.latitude)
         assertEquals(4.4f, events.first().position?.longitude)
         assertEquals(5.5f, events.first().position?.speed)
-        assertNull(events.first().time)
+        assertEquals(2019, events.first().position?.time?.year)
+        assertEquals(1, events.first().position?.time?.month?.value)
+        assertEquals(27, events.first().position?.time?.dayOfMonth)
+        assertEquals(10, events.first().position?.time?.hour)
+        assertEquals(15, events.first().position?.time?.minute)
+        assertEquals(30, events.first().position?.time?.second)
+        assertEquals(0, events.first().position?.time?.nano)
 
         // Cleaning
         logger.debug("Removing created event")
@@ -147,13 +160,14 @@ class EventControllerTest : BaseControllerTest() {
         val requestBody = "{\n" +
                 "    \"name\": \"Kradez\",\n" +
                 "    \"eventTypeId\": 1,\n" +
-                "    \"time\": null,\n" +
+                "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"carId\": 1,\n" +
                 "    \"note\": \"zmizelo auto\",\n" +
                 "    \"position\": {\n" +
                 "        \"accuracy\": 1.1,\n" +
                 "        \"latitude\": 3.3,\n" +
                 "        \"longitude\": 4.4,\n" +
+                "        \"time\": \"2019-01-27T10:15:30\",\n" +
                 "        \"speed\": 5.5\n" +
                 "    }\n" +
                 "}"
@@ -195,10 +209,10 @@ class EventControllerTest : BaseControllerTest() {
 
         val requestBody = "{\n" +
                 "    \"eventTypeId\": 1,\n" +
-                "    \"time\": null,\n" +
+                "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"carId\": 1,\n" +
                 "    \"note\": \"zmizelo auto\",\n" +
-                "    \"position\": {}\n" +
+                "    \"position\": null\n" +
                 "}"
 
         val url = getUrl(EVENT_MAPPING)
@@ -226,10 +240,10 @@ class EventControllerTest : BaseControllerTest() {
         val requestBody = "{\n" +
                 "    \"name\": \"Kradez\",\n" +
                 "    \"eventTypeId\": 1,\n" +
-                "    \"time\": null,\n" +
+                "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"carId\": 111,\n" +
                 "    \"note\": \"zmizelo auto\",\n" +
-                "    \"position\": {}\n" +
+                "    \"position\": null\n" +
                 "}"
 
         val url = getUrl(EVENT_MAPPING)
@@ -257,9 +271,9 @@ class EventControllerTest : BaseControllerTest() {
         val requestBody = "{\n" +
                 "    \"name\": \"Kradez\",\n" +
                 "    \"eventTypeId\": 1,\n" +
-                "    \"time\": null,\n" +
+                "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"note\": \"zmizelo auto\",\n" +
-                "    \"position\": {}\n" +
+                "    \"position\": null\n" +
                 "}"
 
         val url = getUrl(EVENT_MAPPING)
@@ -287,10 +301,10 @@ class EventControllerTest : BaseControllerTest() {
         val requestBody = "{\n" +
                 "    \"name\": \"Kradez\",\n" +
                 "    \"eventTypeId\": 111,\n" +
-                "    \"time\": null,\n" +
+                "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"carId\": 111,\n" +
                 "    \"note\": \"zmizelo auto\",\n" +
-                "    \"position\": {}\n" +
+                "    \"position\": null\n" +
                 "}"
 
         val url = getUrl(EVENT_MAPPING)

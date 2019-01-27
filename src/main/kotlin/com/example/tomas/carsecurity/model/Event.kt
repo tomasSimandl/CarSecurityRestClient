@@ -2,7 +2,7 @@ package com.example.tomas.carsecurity.model
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonSerializer
-import java.security.Timestamp
+import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity(name = "event")
@@ -19,7 +19,8 @@ data class Event(
         @JoinColumn(nullable = false)
         val eventType: EventType,
 
-        val time: Timestamp?,
+        @Column(nullable = false)
+        val time: LocalDateTime,
 
         @OneToOne
         val position: Position?,
