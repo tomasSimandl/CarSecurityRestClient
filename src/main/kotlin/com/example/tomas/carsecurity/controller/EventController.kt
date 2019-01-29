@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -37,11 +38,6 @@ class EventController {
                     response: HttpServletResponse) {
 
         logger.info("Starts creating of new event.")
-
-        if (eventCreate.name.isBlank()) {
-            response.status = HttpServletResponse.SC_BAD_REQUEST
-            return
-        }
 
         val car = carRepository.findById(eventCreate.carId)
         if (!car.isPresent) {
@@ -69,7 +65,8 @@ class EventController {
             newPosition
         }
 
-        val event = Event(0, eventCreate.name, eventType.get(), eventCreate.time, position, car.get(), eventCreate.note)
+        // TODO LocalDateTime can throw exception
+        val event = Event(0, eventCreate.name, eventType.get(), LocalDateTime.parse(eventCreate.time), position, car.get(), eventCreate.note)
         eventRepository.save(event)
         logger.debug("Created new event")
 
