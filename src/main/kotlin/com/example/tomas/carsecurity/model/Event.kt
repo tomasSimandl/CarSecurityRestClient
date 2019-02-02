@@ -12,9 +12,6 @@ data class Event(
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         val id: Long = 0,
 
-        @Column(nullable = false)
-        val name: String = "",
-
         @ManyToOne
         @JoinColumn(nullable = false)
         val eventType: EventType,
@@ -39,7 +36,6 @@ data class Event(
             val jsonEvent = JsonObject()
 
             jsonEvent.addProperty("id", event.id)
-            jsonEvent.addProperty("name", event.name)
             jsonEvent.addProperty("event_type_id", event.eventType.id)
             // TOOD timestamp
             jsonEvent.addProperty("position_id", event.position?.id)

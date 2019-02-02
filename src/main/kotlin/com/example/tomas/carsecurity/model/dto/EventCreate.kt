@@ -2,8 +2,6 @@ package com.example.tomas.carsecurity.model.dto
 
 data class EventCreate(
 
-        val name: String = "",
-
         val eventTypeId: Long,
 
         val time: String,

@@ -66,7 +66,7 @@ class EventController {
         }
 
         // TODO LocalDateTime can throw exception
-        val event = Event(0, eventCreate.name, eventType.get(), LocalDateTime.parse(eventCreate.time), position, car.get(), eventCreate.note)
+        val event = Event(0, eventType.get(), LocalDateTime.parse(eventCreate.time), position, car.get(), eventCreate.note)
         eventRepository.save(event)
         logger.debug("Created new event")
 

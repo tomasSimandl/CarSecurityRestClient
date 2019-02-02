@@ -43,7 +43,6 @@ class EventControllerTest : BaseControllerTest() {
         logger.info("Testing creating of new event without position")
 
         val requestBody = "{\n" +
-                "    \"name\": \"Kradez\",\n" +
                 "    \"eventTypeId\": 1,\n" +
                 "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"carId\": 1,\n" +
@@ -67,7 +66,6 @@ class EventControllerTest : BaseControllerTest() {
         assertEquals(positionsCount, positionRepository.count())
 
         val events = eventRepository.findAll(Sort(Sort.Direction.DESC, "id"))
-        assertEquals("Kradez", events.first().name)
         assertEquals(1L, events.first().eventType.id)
         assertEquals(1L, events.first().car.id)
         assertEquals("zmizelo auto", events.first().note)
@@ -92,7 +90,6 @@ class EventControllerTest : BaseControllerTest() {
         logger.info("Testing creating of new event with position")
 
         val requestBody = "{\n" +
-                "    \"name\": \"Kradez\",\n" +
                 "    \"eventTypeId\": 1,\n" +
                 "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"carId\": 1,\n" +
@@ -124,7 +121,6 @@ class EventControllerTest : BaseControllerTest() {
         assertEquals(positionsCount + 1, positionRepository.count())
 
         val events = eventRepository.findAll(Sort(Sort.Direction.DESC, "id"))
-        assertEquals("Kradez", events.first().name)
         assertEquals(1L, events.first().eventType.id)
         assertEquals(1L, events.first().car.id)
         assertEquals("zmizelo auto", events.first().note)
@@ -158,7 +154,6 @@ class EventControllerTest : BaseControllerTest() {
         logger.info("Testing creating of new event with position and missing values")
 
         val requestBody = "{\n" +
-                "    \"name\": \"Kradez\",\n" +
                 "    \"eventTypeId\": 1,\n" +
                 "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"carId\": 1,\n" +
@@ -203,42 +198,11 @@ class EventControllerTest : BaseControllerTest() {
     }
 
     @Test
-    fun `create new event without name`() {
-
-        logger.info("Testing creating of new event without name")
-
-        val requestBody = "{\n" +
-                "    \"eventTypeId\": 1,\n" +
-                "    \"time\": \"2019-01-27T10:15:30\",\n" +
-                "    \"carId\": 1,\n" +
-                "    \"note\": \"zmizelo auto\",\n" +
-                "    \"position\": null\n" +
-                "}"
-
-        val url = getUrl(EVENT_MAPPING)
-        logger.debug("Request url: $url")
-        logger.debug("Request params: $requestBody")
-
-        val headers = HttpHeaders()
-        headers.contentType = MediaType.APPLICATION_JSON
-        val requestData = HttpEntity(requestBody, headers)
-        val result = testTemplate.postForEntity(url, requestData, String::class.java)
-
-        // Testing
-        assertEquals(400, result.statusCodeValue)
-        assertEquals(null, result.body)
-
-        assertEquals(eventsCount, eventRepository.count())
-        assertEquals(positionsCount, positionRepository.count())
-    }
-
-    @Test
     fun `create new event with invalid car id`() {
 
         logger.info("Testing creating of new event with invalid car id")
 
         val requestBody = "{\n" +
-                "    \"name\": \"Kradez\",\n" +
                 "    \"eventTypeId\": 1,\n" +
                 "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"carId\": 111,\n" +
@@ -269,7 +233,6 @@ class EventControllerTest : BaseControllerTest() {
         logger.info("Testing creating of new event without car id")
 
         val requestBody = "{\n" +
-                "    \"name\": \"Kradez\",\n" +
                 "    \"eventTypeId\": 1,\n" +
                 "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"note\": \"zmizelo auto\",\n" +
@@ -299,7 +262,6 @@ class EventControllerTest : BaseControllerTest() {
         logger.info("Testing creating of new event with invalid event type id")
 
         val requestBody = "{\n" +
-                "    \"name\": \"Kradez\",\n" +
                 "    \"eventTypeId\": 111,\n" +
                 "    \"time\": \"2019-01-27T10:15:30\",\n" +
                 "    \"carId\": 111,\n" +
@@ -342,7 +304,6 @@ class EventControllerTest : BaseControllerTest() {
         val event = JsonParser().parse(result.body).asJsonObject
 
         assertEquals(1L, event.get("id").asLong)
-        assertEquals("1", event.get("name").asString)
         assertEquals("jedna", event.get("note").asString)
         assertNull(event.get("time"))
         assertEquals(1L, event.get("car_id").asLong)
