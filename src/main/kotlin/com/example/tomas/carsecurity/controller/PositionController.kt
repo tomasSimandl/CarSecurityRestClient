@@ -11,6 +11,9 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -25,7 +28,7 @@ class PositionController {
     @Autowired
     private lateinit var routeRepository: RouteRepository
 
-    private val cacheRoutes = HashMap<Long, Route>() // TODO is it empty for every request?
+    private val cacheRoutes = HashMap<Long, Route>()
 
     @PostMapping(POSITION_MAPPING)
     fun savePositions(@RequestBody positions: Array<PositionCreate>, request: HttpServletRequest,
@@ -51,8 +54,11 @@ class PositionController {
                 tempRoute
             }
 
+            val instant = Instant.ofEpochMilli(positionCreate.time)
+            val zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)
+
             val position = Position(0, route, positionCreate.latitude, positionCreate.longitude,
-                    positionCreate.altitude, positionCreate.time, positionCreate.accuracy, positionCreate.speed)
+                    positionCreate.altitude, zonedDateTime, positionCreate.accuracy, positionCreate.speed)
 
             savePositions.add(position)
         }

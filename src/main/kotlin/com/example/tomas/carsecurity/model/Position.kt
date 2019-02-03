@@ -2,7 +2,7 @@ package com.example.tomas.carsecurity.model
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonSerializer
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import javax.persistence.*
 
 @Entity(name = "position")
@@ -25,7 +25,7 @@ data class Position(
         val altitude: Float = 0f,
 
         @Column(nullable = false)
-        val time: LocalDateTime,
+        val time: ZonedDateTime,
 
         @Column(nullable = false)
         val accuracy: Float = 0f,

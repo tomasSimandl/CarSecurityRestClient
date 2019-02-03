@@ -4,7 +4,8 @@ data class EventCreate(
 
         val eventTypeId: Long,
 
-        val time: String,
+        /** Milliseconds from 1.1.1970 in UTC */
+        val time: Long,
 
         val position: PositionCreate?,
 

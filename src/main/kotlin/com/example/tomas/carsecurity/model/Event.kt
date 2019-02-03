@@ -3,6 +3,7 @@ package com.example.tomas.carsecurity.model
 import com.google.gson.JsonObject
 import com.google.gson.JsonSerializer
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import javax.persistence.*
 
 @Entity(name = "event")
@@ -17,7 +18,7 @@ data class Event(
         val eventType: EventType,
 
         @Column(nullable = false)
-        val time: LocalDateTime,
+        val time: ZonedDateTime,
 
         @OneToOne
         val position: Position?,

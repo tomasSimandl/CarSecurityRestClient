@@ -12,7 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
@@ -56,8 +58,11 @@ class EventController {
         val position = if (eventCreate.position == null) {
             null
         } else {
+            val instant = Instant.ofEpochMilli(eventCreate.position.time)
+            val zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)
+
             var newPosition = Position(0, null, eventCreate.position.latitude, eventCreate.position.longitude,
-                    eventCreate.position.altitude, eventCreate.position.time, eventCreate.position.accuracy,
+                    eventCreate.position.altitude, zonedDateTime, eventCreate.position.accuracy,
                     eventCreate.position.speed)
             newPosition = positionRepository.save(newPosition)
             logger.debug("Created new position.")
@@ -65,8 +70,10 @@ class EventController {
             newPosition
         }
 
-        // TODO LocalDateTime can throw exception
-        val event = Event(0, eventType.get(), LocalDateTime.parse(eventCreate.time), position, car.get(), eventCreate.note)
+        val instant = Instant.ofEpochMilli(eventCreate.time)
+        val zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)
+
+        val event = Event(0, eventType.get(), zonedDateTime, position, car.get(), eventCreate.note)
         eventRepository.save(event)
         logger.debug("Created new event")
 
