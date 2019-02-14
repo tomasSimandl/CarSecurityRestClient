@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example.tomas</groupId>
-	<artifactId>carsecurity</artifactId>
+	<artifactId>carsecurity-rest-client</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>carsecurity</name>
 	<description>Demo project for Spring Boot</description>
@@ -116,7 +116,7 @@
 						<configuration>
 							<classifier>spring-boot</classifier>
 							<mainClass>
-								com.example.tomas.carsecurity.CarsecurityApplication
+								com.example.tomas.carsecurity.CarSecurityRestApplication
 							</mainClass>
 						</configuration>
 					</execution>

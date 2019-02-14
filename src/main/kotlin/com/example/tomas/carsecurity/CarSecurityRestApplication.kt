@@ -4,9 +4,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class CarsecurityApplication
+class CarSecurityRestApplication
 
 fun main(args: Array<String>) {
-	runApplication<CarsecurityApplication>(*args)
+	runApplication<CarSecurityRestApplication>(*args)
 }
 
