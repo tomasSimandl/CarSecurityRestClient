@@ -4,7 +4,6 @@ import com.example.tomas.carsecurity.model.Route
 import com.example.tomas.carsecurity.repository.CarRepository
 import com.example.tomas.carsecurity.repository.RouteRepository
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.GetMapping
@@ -18,15 +17,12 @@ import javax.servlet.http.HttpServletResponse
 
 
 @Controller
-class RouteController {
+class RouteController(
+        private val routeRepository: RouteRepository,
+        private val carRepository: CarRepository
+) {
 
     private val logger = LoggerFactory.getLogger(RouteController::class.java)
-
-    @Autowired
-    private lateinit var routeRepository: RouteRepository
-
-    @Autowired
-    private lateinit var carRepository: CarRepository
 
     @ResponseBody
     @PostMapping(ROUTE_MAPPING)

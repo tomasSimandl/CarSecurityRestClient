@@ -6,7 +6,6 @@ import com.example.tomas.carsecurity.model.dto.PositionCreate
 import com.example.tomas.carsecurity.repository.PositionRepository
 import com.example.tomas.carsecurity.repository.RouteRepository
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Controller
@@ -18,16 +17,12 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 @Controller
-class PositionController {
+class PositionController(
+        private val positionRepository: PositionRepository,
+        private val routeRepository: RouteRepository
+) {
 
     private val logger = LoggerFactory.getLogger(PositionController::class.java)
-
-    @Autowired
-    private lateinit var positionRepository: PositionRepository
-
-    @Autowired
-    private lateinit var routeRepository: RouteRepository
-
     private val cacheRoutes = HashMap<Long, Route>()
 
     @PostMapping(POSITION_MAPPING)

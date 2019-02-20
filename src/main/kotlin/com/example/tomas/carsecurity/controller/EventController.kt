@@ -8,7 +8,6 @@ import com.example.tomas.carsecurity.repository.EventRepository
 import com.example.tomas.carsecurity.repository.EventTypeRepository
 import com.example.tomas.carsecurity.repository.PositionRepository
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
@@ -19,21 +18,14 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 @Controller
-class EventController {
+class EventController(
+        private val eventRepository: EventRepository,
+        private val eventTypeRepository: EventTypeRepository,
+        private val carRepository: CarRepository,
+        private val positionRepository: PositionRepository
+) {
 
     private val logger = LoggerFactory.getLogger(EventController::class.java)
-
-    @Autowired
-    private lateinit var eventRepository: EventRepository
-
-    @Autowired
-    private lateinit var eventTypeRepository: EventTypeRepository
-
-    @Autowired
-    private lateinit var carRepository: CarRepository
-
-    @Autowired
-    private lateinit var positionRepository: PositionRepository
 
     @PostMapping(EVENT_MAPPING)
     fun createEvent(@RequestBody eventCreate: EventCreate, request: HttpServletRequest,
