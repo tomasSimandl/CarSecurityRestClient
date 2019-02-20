@@ -10,6 +10,7 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
+import java.security.Principal
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -26,15 +27,23 @@ class PositionController(
     private val cacheRoutes = HashMap<Long, Route>()
 
     @PostMapping(POSITION_MAPPING)
-    fun savePositions(@RequestBody positions: Array<PositionCreate>, request: HttpServletRequest,
-                      response: HttpServletResponse) {
-
-        assert(cacheRoutes.isEmpty())
+    fun savePositions(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestBody positions: Array<PositionCreate>
+    ) {
 
         logger.info("Starts creating of new positions.")
+        assert(cacheRoutes.isEmpty())
+
+        if(principal.name == null){
+            logger.debug("User is not logged in.")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return
+        }
 
         val savePositions = ArrayList<Position>(positions.size)
-
         for (positionCreate in positions) {
 
             val route = if (positionCreate.routeId == null) {
@@ -47,6 +56,12 @@ class PositionController(
                     return
                 }
                 tempRoute
+            }
+
+            if(route != null && principal.name != route.car.username) {
+                logger.debug("User: ${principal.name} is not owner of car: ${route.car.username}")
+                response.status = HttpServletResponse.SC_UNAUTHORIZED
+                return
             }
 
             val instant = Instant.ofEpochMilli(positionCreate.time)
@@ -73,9 +88,27 @@ class PositionController(
 
     @ResponseBody
     @GetMapping(POSITION_MAPPING, params = ["route_id"])
-    fun getPositions(@RequestParam(value = "route_id") routeId: Long,
-                     @RequestParam(value = "page", defaultValue = "0") page: Int,
-                     @RequestParam(value = "limit", defaultValue = "15") limit: Int): String {
+    fun getPositions(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestParam(value = "route_id") routeId: Long,
+            @RequestParam(value = "page", defaultValue = "0") page: Int,
+            @RequestParam(value = "limit", defaultValue = "15") limit: Int
+    ): String {
+
+        val route = routeRepository.findById(routeId)
+        if(!route.isPresent) {
+            logger.debug("Requested route does not exists")
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return ""
+        }
+
+        if(principal.name == null || route.get().car.username != principal.name) {
+            logger.debug("User: ${principal.name} is not allowed to get route: $routeId")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return ""
+        }
 
         val validLimit = if (limit <= 0) 1 else limit
         val positions = positionRepository.findAllByRouteId(routeId, PageRequest.of(page, validLimit))
