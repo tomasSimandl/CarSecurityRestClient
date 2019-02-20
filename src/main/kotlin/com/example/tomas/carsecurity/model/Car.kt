@@ -9,9 +9,8 @@ data class Car(
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         val id: Long = 0,
 
-        @ManyToOne()
         @JoinColumn(nullable = false)
-        val user: User,
+        val username: String,
 
         @OneToMany(mappedBy = "car", fetch = FetchType.LAZY)
         val routes: List<Route> = ArrayList(),

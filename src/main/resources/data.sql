@@ -1,8 +1,6 @@
 
-INSERT INTO user (id, user_name, first_name, surname, password, role) VALUES (1, "Pavel", "Pavel", "Novak", "12345", "");
-
-INSERT INTO car (id, user_id, name, icon) VALUES (1, 1, "Trabant", "");
-INSERT INTO car (id, user_id, name, icon) VALUES (2, 1, "Favorit", "");
+INSERT INTO car (id, username, name, icon) VALUES (1, "user", "Trabant", "");
+INSERT INTO car (id, username, name, icon) VALUES (2, "admin", "Favorit", "");
 
 INSERT INTO route (id, length, car_id, note) VALUES (1, 0, 1, "car 1");
 INSERT INTO route (id, length, car_id, note) VALUES (2, 0, 1, "car 2");
