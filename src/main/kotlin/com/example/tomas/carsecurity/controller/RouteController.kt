@@ -57,7 +57,7 @@ class RouteController(
 
     @ResponseBody
     @GetMapping(ROUTE_MAPPING)
-    fun getRoutesOfLoggedUser(
+    fun getRoutesOfLogUser(
             principal: Principal,
             request: HttpServletRequest,
             response: HttpServletResponse,

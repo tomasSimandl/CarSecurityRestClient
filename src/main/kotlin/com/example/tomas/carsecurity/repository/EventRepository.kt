@@ -10,4 +10,6 @@ interface EventRepository : PagingAndSortingRepository<Event, Long> {
 
     @Query("SELECT * FROM event e WHERE e.car_id = ?1", nativeQuery = true)
     fun findAllByCarId(carId: Long, pageable: Pageable): Page<Event>
+
+    fun findAllByCar_Username(username: String, pageable: Pageable): Page<Event>
 }

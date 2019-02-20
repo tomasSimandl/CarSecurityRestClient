@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
+import java.security.Principal
 import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -28,8 +29,12 @@ class EventController(
     private val logger = LoggerFactory.getLogger(EventController::class.java)
 
     @PostMapping(EVENT_MAPPING)
-    fun createEvent(@RequestBody eventCreate: EventCreate, request: HttpServletRequest,
-                    response: HttpServletResponse) {
+    fun createEvent(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestBody eventCreate: EventCreate
+    ) {
 
         logger.info("Starts creating of new event.")
 
@@ -37,6 +42,12 @@ class EventController(
         if (!car.isPresent) {
             logger.debug("Car id does not exists.")
             response.status = HttpServletResponse.SC_BAD_REQUEST
+            return
+        }
+
+        if (principal.name == null || car.get().username != principal.name){
+            logger.debug("User: ${principal.name} can not create event for car: ${eventCreate.carId}")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
             return
         }
 
@@ -75,8 +86,12 @@ class EventController(
 
     @ResponseBody
     @GetMapping(EVENT_MAPPING, params = ["event_id"])
-    fun getEvent(@RequestParam(value = "event_id") eventId: Long, request: HttpServletRequest,
-                 response: HttpServletResponse): String {
+    fun getEvent(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestParam(value = "event_id") eventId: Long
+    ): String {
 
         val event = eventRepository.findById(eventId)
         if (!event.isPresent) {
@@ -85,15 +100,59 @@ class EventController(
             return ""
         }
 
+        if (principal.name == null || event.get().car.username != principal.name){
+            logger.debug("User: ${principal.name} can not get event: $eventId")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return ""
+        }
+
         return Event.gson.toJson(event.get())
     }
 
+    @ResponseBody
+    @GetMapping(EVENT_MAPPING)
+    fun getEventsOfLogUser(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestParam(value = "page", defaultValue = "0") page: Int,
+            @RequestParam(value = "limit", defaultValue = "15") limit: Int
+    ): String {
+
+        if (principal.name == null) {
+            logger.debug("Principal is null.")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return ""
+        }
+
+        val validLimit = if (limit <= 0) 1 else limit
+        val events = eventRepository.findAllByCar_Username(principal.name, PageRequest.of(page, validLimit))
+        return Event.gson.toJson(events.content)
+    }
 
     @ResponseBody
     @GetMapping(EVENT_MAPPING, params = ["car_id"])
-    fun getEvents(@RequestParam(value = "car_id") carId: Long,
-                  @RequestParam(value = "page", defaultValue = "0") page: Int,
-                  @RequestParam(value = "limit", defaultValue = "15") limit: Int): String {
+    fun getEvents(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestParam(value = "car_id") carId: Long,
+            @RequestParam(value = "page", defaultValue = "0") page: Int,
+            @RequestParam(value = "limit", defaultValue = "15") limit: Int
+    ): String {
+
+        val car = carRepository.findById(carId)
+        if (!car.isPresent) {
+            logger.debug("Car id does not exists.")
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return ""
+        }
+
+        if (principal.name == null || car.get().username != principal.name) {
+            logger.debug("User: ${principal.name} is not owner of car: $carId")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return ""
+        }
 
         val validLimit = if (limit <= 0) 1 else limit
         val events = eventRepository.findAllByCarId(carId, PageRequest.of(page, validLimit))
