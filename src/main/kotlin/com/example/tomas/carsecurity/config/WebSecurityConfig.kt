@@ -29,7 +29,7 @@ class WebSecurityConfig(
         http
                 .authorizeRequests()
                 .anyRequest()
-                .permitAll()
+                .authenticated()
     }
 
     @Bean
