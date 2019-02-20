@@ -10,4 +10,6 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
 
     @Query("SELECT * FROM route r WHERE r.car_id = ?1", nativeQuery = true)
     fun findAllByCarId(carId: Long, pageable: Pageable): Page<Route>
+
+    fun findAllByCar_Username(username: String, pageable: Pageable): Page<Route>
 }
