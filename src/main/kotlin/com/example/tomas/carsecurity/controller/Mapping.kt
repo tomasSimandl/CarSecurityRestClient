@@ -3,6 +3,7 @@ package com.example.tomas.carsecurity.controller
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 
+const val CAR_MAPPING = "/car"
 const val ROUTE_MAPPING = "/route"
 const val EVENT_MAPPING = "/event"
 const val POSITION_MAPPING = "/position"
