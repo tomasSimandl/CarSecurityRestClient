@@ -84,6 +84,38 @@ class EventController(
         return
     }
 
+    @PutMapping(EVENT_MAPPING)
+    @ResponseBody
+    fun updateEventNote(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestBody eventUpdate: EventUpdate
+    ): String {
+
+        logger.info("Starts updating of event.")
+
+        val dbEvent = eventRepository.findById(eventUpdate.id)
+        if(!dbEvent.isPresent){
+            logger.debug("Can not update not existing event")
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return createJsonSingle("error", "Event does not exists")
+        }
+
+        if (principal.name == null || dbEvent.get().car.username != principal.name){
+            logger.debug("User: ${principal.name} can not update event ${eventUpdate.id}. Not owner of the car.")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return ""
+        }
+
+        dbEvent.get().note = eventUpdate.note
+        eventRepository.save(dbEvent.get())
+        logger.debug("Event updated")
+
+        response.status = HttpServletResponse.SC_CREATED
+        return ""
+    }
+
     @ResponseBody
     @GetMapping(EVENT_MAPPING, params = ["event_id"])
     fun getEvent(
