@@ -1,6 +1,7 @@
 package com.example.tomas.carsecurity.controller
 
 import com.example.tomas.carsecurity.model.Route
+import com.example.tomas.carsecurity.model.dto.RouteUpdate
 import com.example.tomas.carsecurity.repository.CarRepository
 import com.example.tomas.carsecurity.repository.RouteRepository
 import org.slf4j.LoggerFactory
@@ -53,6 +54,37 @@ class RouteController(
 
         logger.debug("New route created.")
         return createJsonSingle("route_id", route.id.toString())
+    }
+
+    @ResponseBody
+    @PutMapping(ROUTE_MAPPING)
+    fun updateRoutesNote(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestBody routeUpdate: RouteUpdate
+    ): String {
+
+        logger.info("Route update request.")
+
+        val dbRoute = routeRepository.findById(routeUpdate.id)
+        if(!dbRoute.isPresent) {
+            logger.debug("Route does not exists")
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return createJsonSingle("error", "Route does not exists")
+        }
+
+        if (principal.name == null || dbRoute.get().car.username != principal.name) {
+            logger.debug("User: ${principal.name} is not owner of route: ${routeUpdate.id}")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return ""
+        }
+
+        dbRoute.get().note = routeUpdate.note
+        routeRepository.save(dbRoute.get())
+
+        logger.debug("Route updated.")
+        return ""
     }
 
     @ResponseBody
