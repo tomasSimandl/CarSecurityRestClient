@@ -3,6 +3,7 @@ package com.example.tomas.carsecurity.controller
 import com.example.tomas.carsecurity.model.Event
 import com.example.tomas.carsecurity.model.Position
 import com.example.tomas.carsecurity.model.dto.EventCreate
+import com.example.tomas.carsecurity.model.dto.EventUpdate
 import com.example.tomas.carsecurity.repository.CarRepository
 import com.example.tomas.carsecurity.repository.EventRepository
 import com.example.tomas.carsecurity.repository.EventTypeRepository
@@ -29,12 +30,13 @@ class EventController(
     private val logger = LoggerFactory.getLogger(EventController::class.java)
 
     @PostMapping(EVENT_MAPPING)
+    @ResponseBody
     fun createEvent(
             principal: Principal,
             request: HttpServletRequest,
             response: HttpServletResponse,
             @RequestBody eventCreate: EventCreate
-    ) {
+    ): String {
 
         logger.info("Starts creating of new event.")
 
@@ -42,20 +44,20 @@ class EventController(
         if (!car.isPresent) {
             logger.debug("Car id does not exists.")
             response.status = HttpServletResponse.SC_BAD_REQUEST
-            return
+            return createJsonSingle("error", "Car id does not exists.")
         }
 
         if (principal.name == null || car.get().username != principal.name){
             logger.debug("User: ${principal.name} can not create event for car: ${eventCreate.carId}")
             response.status = HttpServletResponse.SC_UNAUTHORIZED
-            return
+            return ""
         }
 
         val eventType = eventTypeRepository.findById(eventCreate.eventTypeId)
         if (!eventType.isPresent) {
             logger.debug("EventType id does not exists.")
             response.status = HttpServletResponse.SC_BAD_REQUEST
-            return
+            return createJsonSingle("error", "Selected event type does not exists.")
         }
 
         val position = if (eventCreate.position == null) {
@@ -81,7 +83,7 @@ class EventController(
         logger.debug("Created new event")
 
         response.status = HttpServletResponse.SC_CREATED
-        return
+        return ""
     }
 
     @PutMapping(EVENT_MAPPING)
@@ -129,7 +131,7 @@ class EventController(
         if (!event.isPresent) {
             logger.debug("Event does not exists.")
             response.status = HttpServletResponse.SC_BAD_REQUEST
-            return ""
+            return createJsonSingle("error", "Event does not exists")
         }
 
         if (principal.name == null || event.get().car.username != principal.name){
@@ -177,7 +179,7 @@ class EventController(
         if (!car.isPresent) {
             logger.debug("Car id does not exists.")
             response.status = HttpServletResponse.SC_BAD_REQUEST
-            return ""
+            return createJsonSingle("error", "Event does not exists")
         }
 
         if (principal.name == null || car.get().username != principal.name) {
