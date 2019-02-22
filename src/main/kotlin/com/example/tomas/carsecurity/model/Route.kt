@@ -28,7 +28,7 @@ data class Route(
         val car: Car,
 
         @Column(nullable = false)
-        val note: String = ""
+        var note: String = ""
 ) {
 
     companion object RouteSerializer : GeneralSerializer() {

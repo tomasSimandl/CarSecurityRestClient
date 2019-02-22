@@ -28,7 +28,7 @@ data class Event(
         val car: Car,
 
         @Column(nullable = false)
-        val note: String = ""
+        var note: String = ""
 ) {
 
     companion object EventSerializer : GeneralSerializer() {

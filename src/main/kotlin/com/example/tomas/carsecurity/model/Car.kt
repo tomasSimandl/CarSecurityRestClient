@@ -21,10 +21,10 @@ data class Car(
         val events: List<Event> = ArrayList(),
 
         @Column(nullable = false)
-        val name: String = "",
+        var name: String = "",
 
         @Column(nullable = false)
-        val icon: String = ""
+        var icon: String = ""
 ) {
 
         companion object CarSerializer : GeneralSerializer() {
