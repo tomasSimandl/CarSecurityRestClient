@@ -44,6 +44,44 @@ class CarController(
     }
 
     @ResponseBody
+    @PutMapping(CAR_MAPPING)
+    fun updateCar(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestBody carUpdate: CarUpdate
+    ): String {
+
+        logger.info("Update new car request.")
+
+        val dbCar = carRepository.findById(carUpdate.id)
+        if(!dbCar.isPresent) {
+            logger.debug("Can not update not existing car")
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return createJsonSingle("error", "Car does not exists")
+        }
+
+        if (principal.name == null || principal.name != dbCar.get().username) {
+            logger.debug("Can not create car. User is not logged in or is not owner of the car.")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return ""
+        }
+
+        if (carUpdate.name.isBlank()){
+            logger.debug("Can not create car with empty name.")
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return createJsonSingle("error", "Name can not be empty")
+        }
+
+        dbCar.get().name = carUpdate.name
+        dbCar.get().icon = carUpdate.icon
+
+        carRepository.save(dbCar.get())
+        logger.debug("Car updated.")
+        return ""
+    }
+
+    @ResponseBody
     @GetMapping(CAR_MAPPING)
     fun getCarsOfLogUser(
             principal: Principal,
