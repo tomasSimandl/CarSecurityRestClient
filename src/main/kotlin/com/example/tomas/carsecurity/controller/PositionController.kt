@@ -101,7 +101,7 @@ class PositionController(
         if(!route.isPresent) {
             logger.debug("Requested route does not exists")
             response.status = HttpServletResponse.SC_BAD_REQUEST
-            return ""
+            return createJsonSingle("error", "Route does not exists.")
         }
 
         if(principal.name == null || route.get().car.username != principal.name) {
