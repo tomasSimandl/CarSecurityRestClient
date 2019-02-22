@@ -3,6 +3,7 @@ package com.example.tomas.carsecurity.controller
 import com.example.tomas.carsecurity.model.Route
 import com.example.tomas.carsecurity.model.dto.RouteUpdate
 import com.example.tomas.carsecurity.repository.CarRepository
+import com.example.tomas.carsecurity.repository.DeleteUtil
 import com.example.tomas.carsecurity.repository.RouteRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
@@ -16,7 +17,8 @@ import javax.servlet.http.HttpServletResponse
 @RestController
 class RouteController(
         private val routeRepository: RouteRepository,
-        private val carRepository: CarRepository
+        private val carRepository: CarRepository,
+        private val deleteUtil: DeleteUtil
 ) {
 
     private val logger = LoggerFactory.getLogger(RouteController::class.java)
@@ -81,6 +83,32 @@ class RouteController(
         routeRepository.save(dbRoute.get())
 
         logger.debug("Route updated.")
+        return ""
+    }
+
+    @ResponseBody
+    @DeleteMapping(ROUTE_MAPPING, params = ["route_id"], produces = ["application/json; charset=utf-8"])
+    fun deleteRouteById(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestParam(value = "route_id") routeId: Long
+    ): String {
+
+        val route = routeRepository.findById(routeId)
+        if (!route.isPresent) {
+            logger.debug("Route does not exists.")
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return createJsonSingle("error", "Route does not exists.")
+        }
+
+        if (principal.name == null || route.get().car.username != principal.name) {
+            logger.debug("User: ${principal.name} is not owner of requested route: $routeId")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return ""
+        }
+
+        deleteUtil.deleteRoutes(listOf(route.get()))
         return ""
     }
 

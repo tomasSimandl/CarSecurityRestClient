@@ -1,5 +1,6 @@
 package com.example.tomas.carsecurity.repository
 
+import com.example.tomas.carsecurity.model.Car
 import com.example.tomas.carsecurity.model.Event
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -12,4 +13,6 @@ interface EventRepository : PagingAndSortingRepository<Event, Long> {
     fun findAllByCarId(carId: Long, pageable: Pageable): Page<Event>
 
     fun findAllByCar_Username(username: String, pageable: Pageable): Page<Event>
+
+    fun findAllByCarIn(cars: List<Car>): List<Event>
 }

@@ -1,5 +1,6 @@
 package com.example.tomas.carsecurity.repository
 
+import com.example.tomas.carsecurity.model.Car
 import com.example.tomas.carsecurity.model.Route
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -12,4 +13,6 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
     fun findAllByCarId(carId: Long, pageable: Pageable): Page<Route>
 
     fun findAllByCar_Username(username: String, pageable: Pageable): Page<Route>
+
+    fun findAllByCarIn(cars: List<Car>): List<Route>
 }

@@ -4,10 +4,7 @@ import com.example.tomas.carsecurity.model.Event
 import com.example.tomas.carsecurity.model.Position
 import com.example.tomas.carsecurity.model.dto.EventCreate
 import com.example.tomas.carsecurity.model.dto.EventUpdate
-import com.example.tomas.carsecurity.repository.CarRepository
-import com.example.tomas.carsecurity.repository.EventRepository
-import com.example.tomas.carsecurity.repository.EventTypeRepository
-import com.example.tomas.carsecurity.repository.PositionRepository
+import com.example.tomas.carsecurity.repository.*
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.*
@@ -23,7 +20,8 @@ class EventController(
         private val eventRepository: EventRepository,
         private val eventTypeRepository: EventTypeRepository,
         private val carRepository: CarRepository,
-        private val positionRepository: PositionRepository
+        private val positionRepository: PositionRepository,
+        private val deleteUtil: DeleteUtil
 ) {
 
     private val logger = LoggerFactory.getLogger(EventController::class.java)
@@ -114,6 +112,32 @@ class EventController(
         logger.debug("Event updated")
 
         response.status = HttpServletResponse.SC_CREATED
+        return ""
+    }
+
+    @ResponseBody
+    @DeleteMapping(EVENT_MAPPING, params = ["event_id"], produces = ["application/json; charset=utf-8"])
+    fun deleteEvent(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestParam(value = "event_id") eventId: Long
+    ): String {
+
+        val event = eventRepository.findById(eventId)
+        if (!event.isPresent) {
+            logger.debug("Event does not exists.")
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return createJsonSingle("error", "Event does not exists")
+        }
+
+        if (principal.name == null || event.get().car.username != principal.name){
+            logger.debug("User: ${principal.name} can not get event: $eventId")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return ""
+        }
+
+        deleteUtil.deleteEvents(listOf(event.get()))
         return ""
     }
 

@@ -4,6 +4,7 @@ import com.example.tomas.carsecurity.model.Car
 import com.example.tomas.carsecurity.model.dto.CarCreate
 import com.example.tomas.carsecurity.model.dto.CarUpdate
 import com.example.tomas.carsecurity.repository.CarRepository
+import com.example.tomas.carsecurity.repository.DeleteUtil
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.*
@@ -14,7 +15,8 @@ import javax.servlet.http.HttpServletResponse
 
 @RestController
 class CarController(
-        private val carRepository: CarRepository
+        private val carRepository: CarRepository,
+        private val deleteUtil: DeleteUtil
 ) {
 
     private val logger = LoggerFactory.getLogger(CarController::class.java)
@@ -110,7 +112,7 @@ class CarController(
             return ""
         }
 
-        carRepository.delete(car.get())
+        deleteUtil.deleteCars(listOf(car.get()))
         return ""
     }
 
