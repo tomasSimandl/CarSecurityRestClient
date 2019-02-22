@@ -89,6 +89,32 @@ class CarController(
     }
 
     @ResponseBody
+    @DeleteMapping(CAR_MAPPING, params = ["car_id"], produces = ["application/json; charset=utf-8"])
+    fun deleteCarById(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestParam(value = "car_id") carId: Long
+    ): String {
+
+        val car = carRepository.findById(carId)
+        if (!car.isPresent) {
+            logger.debug("Car does not exists.")
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return createJsonSingle("error", "Car does not exists")
+        }
+
+        if (principal.name == null || car.get().username != principal.name) {
+            logger.debug("User: ${principal.name} is not owner of requested car: $carId")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return ""
+        }
+
+        carRepository.delete(car.get())
+        return ""
+    }
+
+    @ResponseBody
     @GetMapping(CAR_MAPPING, produces = ["application/json; charset=utf-8"])
     fun getCarsOfLogUser(
             principal: Principal,
