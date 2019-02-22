@@ -2,6 +2,7 @@ package com.example.tomas.carsecurity.controller
 
 import com.example.tomas.carsecurity.model.Car
 import com.example.tomas.carsecurity.model.dto.CarCreate
+import com.example.tomas.carsecurity.model.dto.CarUpdate
 import com.example.tomas.carsecurity.repository.CarRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
@@ -36,10 +37,17 @@ class CarController(
             return ""
         }
 
+        if (carCreate.name.isBlank()){
+            logger.debug("Can not create car with empty name.")
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return createJsonSingle("error", "Name can not be empty.")
+        }
+
         var car = Car(username = principal.name, name = carCreate.name, icon = carCreate.icon)
         car = carRepository.save(car)
 
         logger.debug("New car created.")
+        response.status = HttpServletResponse.SC_CREATED
         return createJsonSingle("car_id", car.id.toString())
     }
 
@@ -116,7 +124,7 @@ class CarController(
         if (!car.isPresent) {
             logger.debug("Car does not exists.")
             response.status = HttpServletResponse.SC_BAD_REQUEST
-            return ""
+            return createJsonSingle("error", "Car does not exists")
         }
 
         if (principal.name == null || car.get().username != principal.name) {
