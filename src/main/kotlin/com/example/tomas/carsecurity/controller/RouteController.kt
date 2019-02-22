@@ -7,10 +7,7 @@ import com.example.tomas.carsecurity.repository.RouteRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Controller
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseBody
+import org.springframework.web.bind.annotation.*
 import java.security.Principal
 import java.util.*
 import javax.servlet.http.HttpServletRequest
@@ -40,7 +37,7 @@ class RouteController(
         if (!car.isPresent) {
             logger.debug("Car id does not exists.")
             response.status = HttpServletResponse.SC_BAD_REQUEST
-            return ""
+            return createJsonSingle("error", "Car does not exists.")
         }
 
         if (principal.name == null || car.get().username != principal.name) {
@@ -53,6 +50,7 @@ class RouteController(
         route = routeRepository.save(route)
 
         logger.debug("New route created.")
+        response.status = HttpServletResponse.SC_CREATED
         return createJsonSingle("route_id", route.id.toString())
     }
 
@@ -122,7 +120,7 @@ class RouteController(
         if (!route.isPresent) {
             logger.debug("Route does not exists.")
             response.status = HttpServletResponse.SC_BAD_REQUEST
-            return ""
+            return createJsonSingle("error", "Route does not exists.")
         }
 
         if (principal.name == null || route.get().car.username != principal.name) {
@@ -149,7 +147,7 @@ class RouteController(
         if (!car.isPresent) {
             logger.debug("Car id does not exists.")
             response.status = HttpServletResponse.SC_BAD_REQUEST
-            return ""
+            return createJsonSingle("error", "Car does not exists.")
         }
 
         if (principal.name == null || car.get().username != principal.name) {
