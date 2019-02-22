@@ -6,7 +6,6 @@ import com.example.tomas.carsecurity.repository.CarRepository
 import com.example.tomas.carsecurity.repository.RouteRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
-import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 import java.util.*
@@ -14,7 +13,7 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
-@Controller
+@RestController
 class RouteController(
         private val routeRepository: RouteRepository,
         private val carRepository: CarRepository
@@ -23,7 +22,7 @@ class RouteController(
     private val logger = LoggerFactory.getLogger(RouteController::class.java)
 
     @ResponseBody
-    @PostMapping(ROUTE_MAPPING)
+    @PostMapping(ROUTE_MAPPING, produces = ["application/json; charset=utf-8"])
     fun createRoute(
             principal: Principal,
             request: HttpServletRequest,
@@ -55,7 +54,7 @@ class RouteController(
     }
 
     @ResponseBody
-    @PutMapping(ROUTE_MAPPING)
+    @PutMapping(ROUTE_MAPPING, produces = ["application/json; charset=utf-8"])
     fun updateRoutesNote(
             principal: Principal,
             request: HttpServletRequest,
@@ -86,7 +85,7 @@ class RouteController(
     }
 
     @ResponseBody
-    @GetMapping(ROUTE_MAPPING)
+    @GetMapping(ROUTE_MAPPING, produces = ["application/json; charset=utf-8"])
     fun getRoutesOfLogUser(
             principal: Principal,
             request: HttpServletRequest,
@@ -108,7 +107,7 @@ class RouteController(
 
 
     @ResponseBody
-    @GetMapping(ROUTE_MAPPING, params = ["route_id"])
+    @GetMapping(ROUTE_MAPPING, params = ["route_id"], produces = ["application/json; charset=utf-8"])
     fun getRouteById(
             principal: Principal,
             request: HttpServletRequest,
@@ -133,7 +132,7 @@ class RouteController(
     }
 
     @ResponseBody
-    @GetMapping(ROUTE_MAPPING, params = ["car_id"])
+    @GetMapping(ROUTE_MAPPING, params = ["car_id"], produces = ["application/json; charset=utf-8"])
     fun getRoutesByCarId(
             principal: Principal,
             request: HttpServletRequest,

@@ -8,7 +8,6 @@ import com.example.tomas.carsecurity.repository.RouteRepository
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
-import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 import java.time.Instant
@@ -17,7 +16,7 @@ import java.time.ZonedDateTime
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-@Controller
+@RestController
 class PositionController(
         private val positionRepository: PositionRepository,
         private val routeRepository: RouteRepository
@@ -26,13 +25,14 @@ class PositionController(
     private val logger = LoggerFactory.getLogger(PositionController::class.java)
     private val cacheRoutes = HashMap<Long, Route>()
 
-    @PostMapping(POSITION_MAPPING)
+    @ResponseBody
+    @PostMapping(POSITION_MAPPING, produces = ["application/json; charset=utf-8"])
     fun savePositions(
             principal: Principal,
             request: HttpServletRequest,
             response: HttpServletResponse,
             @RequestBody positions: Array<PositionCreate>
-    ) {
+    ): String {
 
         logger.info("Starts creating of new positions.")
         assert(cacheRoutes.isEmpty())
@@ -40,7 +40,7 @@ class PositionController(
         if(principal.name == null){
             logger.debug("User is not logged in.")
             response.status = HttpServletResponse.SC_UNAUTHORIZED
-            return
+            return ""
         }
 
         val savePositions = ArrayList<Position>(positions.size)
@@ -53,7 +53,7 @@ class PositionController(
                 if (tempRoute == null) {
                     logger.debug("Route id does not exists")
                     response.status = HttpServletResponse.SC_BAD_REQUEST
-                    return
+                    return createJsonSingle("error", "Route ${positionCreate.routeId} does not exists.")
                 }
                 tempRoute
             }
@@ -61,7 +61,7 @@ class PositionController(
             if(route != null && principal.name != route.car.username) {
                 logger.debug("User: ${principal.name} is not owner of car: ${route.car.username}")
                 response.status = HttpServletResponse.SC_UNAUTHORIZED
-                return
+                return ""
             }
 
             val instant = Instant.ofEpochMilli(positionCreate.time)
@@ -78,16 +78,16 @@ class PositionController(
             positionRepository.saveAll(savePositions)
         } catch (e: DataIntegrityViolationException) {
             logger.warn("DataIntegrityViolationException when saving positions to DB: ${e.message}")
-            response.status = HttpServletResponse.SC_CONFLICT
-            return
+            response.status = HttpServletResponse.SC_BAD_REQUEST
+            return createJsonSingle("error", "Can not save. Integrity violation exception.")
         }
 
         response.status = HttpServletResponse.SC_CREATED
-        return
+        return ""
     }
 
     @ResponseBody
-    @GetMapping(POSITION_MAPPING, params = ["route_id"])
+    @GetMapping(POSITION_MAPPING, params = ["route_id"], produces = ["application/json; charset=utf-8"])
     fun getPositions(
             principal: Principal,
             request: HttpServletRequest,

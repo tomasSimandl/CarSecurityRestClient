@@ -10,7 +10,6 @@ import com.example.tomas.carsecurity.repository.EventTypeRepository
 import com.example.tomas.carsecurity.repository.PositionRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
-import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 import java.time.Instant
@@ -19,7 +18,7 @@ import java.time.ZonedDateTime
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-@Controller
+@RestController
 class EventController(
         private val eventRepository: EventRepository,
         private val eventTypeRepository: EventTypeRepository,
@@ -29,7 +28,7 @@ class EventController(
 
     private val logger = LoggerFactory.getLogger(EventController::class.java)
 
-    @PostMapping(EVENT_MAPPING)
+    @PostMapping(EVENT_MAPPING, produces = ["application/json; charset=utf-8"])
     @ResponseBody
     fun createEvent(
             principal: Principal,
@@ -86,7 +85,7 @@ class EventController(
         return ""
     }
 
-    @PutMapping(EVENT_MAPPING)
+    @PutMapping(EVENT_MAPPING, produces = ["application/json; charset=utf-8"])
     @ResponseBody
     fun updateEventNote(
             principal: Principal,
@@ -119,7 +118,7 @@ class EventController(
     }
 
     @ResponseBody
-    @GetMapping(EVENT_MAPPING, params = ["event_id"])
+    @GetMapping(EVENT_MAPPING, params = ["event_id"], produces = ["application/json; charset=utf-8"])
     fun getEvent(
             principal: Principal,
             request: HttpServletRequest,
@@ -144,7 +143,7 @@ class EventController(
     }
 
     @ResponseBody
-    @GetMapping(EVENT_MAPPING)
+    @GetMapping(EVENT_MAPPING, produces = ["application/json; charset=utf-8"])
     fun getEventsOfLogUser(
             principal: Principal,
             request: HttpServletRequest,
@@ -165,7 +164,7 @@ class EventController(
     }
 
     @ResponseBody
-    @GetMapping(EVENT_MAPPING, params = ["car_id"])
+    @GetMapping(EVENT_MAPPING, params = ["car_id"], produces = ["application/json; charset=utf-8"])
     fun getEvents(
             principal: Principal,
             request: HttpServletRequest,

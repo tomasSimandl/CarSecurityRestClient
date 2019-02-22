@@ -6,14 +6,13 @@ import com.example.tomas.carsecurity.model.dto.CarUpdate
 import com.example.tomas.carsecurity.repository.CarRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
-import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
-@Controller
+@RestController
 class CarController(
         private val carRepository: CarRepository
 ) {
@@ -21,7 +20,7 @@ class CarController(
     private val logger = LoggerFactory.getLogger(CarController::class.java)
 
     @ResponseBody
-    @PostMapping(CAR_MAPPING)
+    @PostMapping(CAR_MAPPING, produces = ["application/json; charset=utf-8"])
     fun createCar(
             principal: Principal,
             request: HttpServletRequest,
@@ -52,7 +51,7 @@ class CarController(
     }
 
     @ResponseBody
-    @PutMapping(CAR_MAPPING)
+    @PutMapping(CAR_MAPPING, produces = ["application/json; charset=utf-8"])
     fun updateCar(
             principal: Principal,
             request: HttpServletRequest,
@@ -90,7 +89,7 @@ class CarController(
     }
 
     @ResponseBody
-    @GetMapping(CAR_MAPPING)
+    @GetMapping(CAR_MAPPING, produces = ["application/json; charset=utf-8"])
     fun getCarsOfLogUser(
             principal: Principal,
             request: HttpServletRequest,
@@ -112,7 +111,7 @@ class CarController(
 
 
     @ResponseBody
-    @GetMapping(CAR_MAPPING, params = ["car_id"])
+    @GetMapping(CAR_MAPPING, params = ["car_id"], produces = ["application/json; charset=utf-8"])
     fun getCarById(
             principal: Principal,
             request: HttpServletRequest,
