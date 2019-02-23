@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.PagingAndSortingRepository
+import java.util.*
 
 interface PositionRepository : PagingAndSortingRepository<Position, Long> {
 
@@ -13,4 +14,8 @@ interface PositionRepository : PagingAndSortingRepository<Position, Long> {
     fun findAllByRouteId(routeId: Long, pageable: Pageable): Page<Position>
 
     fun findAllByRouteIn(routes: List<Route>): List<Position>
+
+    fun findFirstByRouteOrderByTimeAsc(route: Route): Optional<Position>
+
+    fun findFirstByRouteOrderByTimeDesc(route: Route): Optional<Position>
 }
