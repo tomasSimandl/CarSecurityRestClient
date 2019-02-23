@@ -34,7 +34,7 @@ class MapController(
     private val logger = LoggerFactory.getLogger(MapController::class.java)
 
     @ResponseBody
-    @GetMapping(MAP_MAPPING, produces = ["image/png"])
+    @GetMapping(MAP_MAPPING)
     fun createStaticMap(
             principal: Principal,
             request: HttpServletRequest,
