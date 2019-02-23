@@ -142,6 +142,7 @@ class PositionController(
 
         val route = routeRepository.findById(routeId)
         if (route.isPresent) {
+            cacheRoutes[routeId] = route.get()
             return route.get()
         }
 
