@@ -5,10 +5,13 @@ import com.example.tomas.carsecurity.model.Route
 import com.example.tomas.carsecurity.model.dto.PositionCreate
 import com.example.tomas.carsecurity.repository.PositionRepository
 import com.example.tomas.carsecurity.repository.RouteRepository
+import org.apache.commons.io.FileUtils
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.*
+import java.io.File
 import java.security.Principal
 import java.time.Instant
 import java.time.ZoneOffset
@@ -19,7 +22,10 @@ import javax.servlet.http.HttpServletResponse
 @RestController
 class PositionController(
         private val positionRepository: PositionRepository,
-        private val routeRepository: RouteRepository
+        private val routeRepository: RouteRepository,
+
+        @Value("\${static.maps.upload.folder}")
+        private val uploadFileFolder: String
 ) {
 
     private val logger = LoggerFactory.getLogger(PositionController::class.java)
@@ -82,8 +88,19 @@ class PositionController(
             return createJsonSingle("error", "Can not save. Integrity violation exception.")
         }
 
+        removeMapOfEditedRoutes()
         response.status = HttpServletResponse.SC_CREATED
         return ""
+    }
+
+    /**
+     * Remove cached images of routes because route was changed.
+     */
+    private fun removeMapOfEditedRoutes(){
+        for (route in cacheRoutes.values) {
+            val file = File("$uploadFileFolder/route-${route.id}.png")
+            FileUtils.deleteQuietly(file)
+        }
     }
 
     @ResponseBody
