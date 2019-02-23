@@ -13,7 +13,7 @@ data class Event(
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         val id: Long = 0,
 
-        @ManyToOne
+        @ManyToOne(fetch = FetchType.EAGER)
         @JoinColumn(nullable = false)
         val eventType: EventType,
 
@@ -23,7 +23,7 @@ data class Event(
         @OneToOne
         val position: Position?,
 
-        @ManyToOne
+        @ManyToOne(fetch = FetchType.EAGER)
         @JoinColumn(nullable = false)
         val car: Car,
 
@@ -37,10 +37,10 @@ data class Event(
             val jsonEvent = JsonObject()
 
             jsonEvent.addProperty("id", event.id)
-            jsonEvent.addProperty("event_type_id", event.eventType.id)
-            // TOOD timestamp
+            jsonEvent.addProperty("event_type_name", event.eventType.name)
+            jsonEvent.addProperty("time", event.time.toEpochSecond())
             jsonEvent.addProperty("position_id", event.position?.id)
-            jsonEvent.addProperty("car_id", event.car.id)
+            jsonEvent.addProperty("car_name", event.car.name)
             jsonEvent.addProperty("note", event.note)
 
             jsonEvent
