@@ -183,7 +183,7 @@ class EventController(
         }
 
         val validLimit = if (limit <= 0) 1 else limit
-        val events = eventRepository.findAllByCar_Username(principal.name, PageRequest.of(page, validLimit))
+        val events = eventRepository.findAllByCar_UsernameOrderByTimeDesc(principal.name, PageRequest.of(page, validLimit))
         return Event.gson.toJson(events.content)
     }
 
