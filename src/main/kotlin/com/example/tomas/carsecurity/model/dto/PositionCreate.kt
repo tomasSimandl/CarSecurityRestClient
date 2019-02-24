@@ -1,5 +1,7 @@
 package com.example.tomas.carsecurity.model.dto
 
+import com.fasterxml.jackson.annotation.JsonProperty
+
 data class PositionCreate(
 
         val latitude: Float = 0f,
@@ -9,5 +11,7 @@ data class PositionCreate(
         val time: Long = 0L,
         val accuracy: Float = 0f,
         val speed: Float = 0f,
+
+        @JsonProperty("route_id")
         val routeId: Long? = null
 )
