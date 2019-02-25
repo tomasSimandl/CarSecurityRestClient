@@ -13,5 +13,7 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
 
     fun findAllByCar_UsernameOrderByTimeDesc(username: String, pageable: Pageable): Page<Route>
 
+    fun countByCar_Username(username: String): Long
+
     fun findAllByCarIn(cars: List<Car>): List<Route>
 }

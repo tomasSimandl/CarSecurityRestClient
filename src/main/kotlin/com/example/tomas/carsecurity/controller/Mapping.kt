@@ -5,6 +5,7 @@ import com.google.gson.JsonObject
 
 const val CAR_MAPPING = "/car"
 const val ROUTE_MAPPING = "/route"
+const val ROUTE_COUNT_MAPPING = "/route/count"
 const val MAP_MAPPING = "/route/map"
 const val EVENT_MAPPING = "/event"
 const val POSITION_MAPPING = "/position"
