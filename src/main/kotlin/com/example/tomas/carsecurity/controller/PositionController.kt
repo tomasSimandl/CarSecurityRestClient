@@ -76,6 +76,7 @@ class PositionController(
             positionRepository.saveAll(positionsToSave)
 
             removeMapOfEditedRoutes()
+            removeCalculateDataOfEditedRoutes()
             response.status = HttpServletResponse.SC_CREATED
             return ""
 
@@ -94,6 +95,14 @@ class PositionController(
             val file = File("$uploadFileFolder/route-${route.id}.png")
             FileUtils.deleteQuietly(file)
         }
+    }
+
+    private fun removeCalculateDataOfEditedRoutes(){
+        for (route in cacheRoutes.values) {
+            route.removeStatistics()
+        }
+
+        routeRepository.saveAll(cacheRoutes.values)
     }
 
     @ResponseBody

@@ -4,11 +4,15 @@ import com.example.tomas.carsecurity.model.Route
 import com.example.tomas.carsecurity.model.dto.RouteUpdate
 import com.example.tomas.carsecurity.repository.CarRepository
 import com.example.tomas.carsecurity.repository.DeleteUtil
+import com.example.tomas.carsecurity.repository.PositionRepository
 import com.example.tomas.carsecurity.repository.RouteRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
+import java.time.Instant
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -17,6 +21,7 @@ import javax.servlet.http.HttpServletResponse
 @RestController
 class RouteController(
         private val routeRepository: RouteRepository,
+        private val positionRepository: PositionRepository,
         private val carRepository: CarRepository,
         private val deleteUtil: DeleteUtil
 ) {
@@ -29,7 +34,8 @@ class RouteController(
             principal: Principal,
             request: HttpServletRequest,
             response: HttpServletResponse,
-            @RequestParam(value = "car_id") carId: Long
+            @RequestParam(value = "car_id") carId: Long,
+            @RequestParam(value = "time") time: Long
     ): String {
 
         logger.info("Create new route request.")
@@ -47,7 +53,10 @@ class RouteController(
             return ""
         }
 
-        var route = Route(0, null, null, ArrayList(), 0f, car.get())
+        val instant = Instant.ofEpochMilli(time)
+        val zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)
+
+        var route = Route( positions = ArrayList(), time = zonedDateTime, car = car.get())
         route = routeRepository.save(route)
 
         logger.debug("New route created.")
@@ -130,6 +139,7 @@ class RouteController(
 
         val validLimit = if (limit <= 0) 1 else limit
         val routes = routeRepository.findAllByCar_Username(principal.name, PageRequest.of(page, validLimit))
+        updateRouteStatistics(routes.content)
         return Route.gson.toJson(routes.content)
     }
 
@@ -156,7 +166,9 @@ class RouteController(
             return ""
         }
 
-        return Route.gson.toJson(route.get())
+        val routeList = listOf(route.get())
+        updateRouteStatistics(routeList)
+        return Route.gson.toJson(routeList.first())
     }
 
     @ResponseBody
@@ -185,6 +197,23 @@ class RouteController(
 
         val validLimit = if (limit <= 0) 1 else limit
         val routes = routeRepository.findAllByCarId(carId, PageRequest.of(page, validLimit))
+        updateRouteStatistics(routes.content)
         return Route.gson.toJson(routes.content)
+    }
+
+    private fun updateRouteStatistics(routes: List<Route>) {
+
+        val routesToUpdate: MutableList<Route> = mutableListOf()
+
+        for (route in routes) {
+            if (route.updateStatistics(positionRepository)) {
+                routesToUpdate.add(route)
+            }
+        }
+
+        if (routesToUpdate.isNotEmpty()) {
+            logger.debug("Updating route statistics.")
+            routeRepository.saveAll(routesToUpdate)
+        }
     }
 }

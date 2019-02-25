@@ -37,9 +37,6 @@ class DeleteUtil(
     @Transactional
     fun deleteRoutes(routes: List<Route>) {
 
-        routes.forEach { it.endPosition = null; it.startPosition = null }
-        routeRepository.saveAll(routes)
-
         val positions = positionRepository.findAllByRouteIn(routes)
         positionRepository.deleteAll(positions)
 
