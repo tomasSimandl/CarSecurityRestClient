@@ -10,6 +10,7 @@ data class PositionCreate(
         /** Milliseconds from 1.1.1970 in UTC */
         val time: Long = 0L,
         val accuracy: Float = 0f,
+        val distance: Float = 0f,
         val speed: Float = 0f,
 
         @JsonProperty("route_id")

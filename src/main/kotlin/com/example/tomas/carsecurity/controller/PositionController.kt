@@ -49,9 +49,8 @@ class PositionController(
             return ""
         }
 
-        val savePositions = ArrayList<Position>(positions.size)
+        val positionsToSave = ArrayList<Position>(positions.size)
         for (positionCreate in positions) {
-
             val route = if (positionCreate.routeId == null) {
                 null
             } else {
@@ -60,37 +59,31 @@ class PositionController(
                     logger.debug("Route id does not exists")
                     response.status = HttpServletResponse.SC_BAD_REQUEST
                     return createJsonSingle("error", "Route ${positionCreate.routeId} does not exists.")
+
+                } else if (principal.name != tempRoute.car.username) {
+                    logger.debug("User: ${principal.name} is not owner of car: ${tempRoute.car.username}")
+                    response.status = HttpServletResponse.SC_UNAUTHORIZED
+                    return ""
                 }
                 tempRoute
             }
 
-            if(route != null && principal.name != route.car.username) {
-                logger.debug("User: ${principal.name} is not owner of car: ${route.car.username}")
-                response.status = HttpServletResponse.SC_UNAUTHORIZED
-                return ""
-            }
-
-            val instant = Instant.ofEpochMilli(positionCreate.time)
-            val zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)
-
-            val position = Position(0, route, positionCreate.latitude, positionCreate.longitude,
-                    positionCreate.altitude, zonedDateTime, positionCreate.accuracy, positionCreate.speed)
-
-            savePositions.add(position)
+            positionsToSave.add(Position(positionCreate, route))
         }
 
         try {
-            logger.debug("Saving ${savePositions.size} positions to database.")
-            positionRepository.saveAll(savePositions)
+            logger.debug("Saving ${positionsToSave.size} positions to database.")
+            positionRepository.saveAll(positionsToSave)
+
+            removeMapOfEditedRoutes()
+            response.status = HttpServletResponse.SC_CREATED
+            return ""
+
         } catch (e: DataIntegrityViolationException) {
             logger.warn("DataIntegrityViolationException when saving positions to DB: ${e.message}")
             response.status = HttpServletResponse.SC_BAD_REQUEST
             return createJsonSingle("error", "Can not save. Integrity violation exception.")
         }
-
-        removeMapOfEditedRoutes()
-        response.status = HttpServletResponse.SC_CREATED
-        return ""
     }
 
     /**
