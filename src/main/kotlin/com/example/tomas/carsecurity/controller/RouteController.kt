@@ -138,7 +138,7 @@ class RouteController(
         }
 
         val validLimit = if (limit <= 0) 1 else limit
-        val routes = routeRepository.findAllByCar_Username(principal.name, PageRequest.of(page, validLimit))
+        val routes = routeRepository.findAllByCar_UsernameOrderByTimeDesc(principal.name, PageRequest.of(page, validLimit))
         updateRouteStatistics(routes.content)
         return Route.gson.toJson(routes.content)
     }
@@ -196,7 +196,7 @@ class RouteController(
         }
 
         val validLimit = if (limit <= 0) 1 else limit
-        val routes = routeRepository.findAllByCarId(carId, PageRequest.of(page, validLimit))
+        val routes = routeRepository.findAllByCar_IdOrderByTimeDesc(carId, PageRequest.of(page, validLimit))
         updateRouteStatistics(routes.content)
         return Route.gson.toJson(routes.content)
     }
