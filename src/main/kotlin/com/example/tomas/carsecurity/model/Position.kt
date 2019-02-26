@@ -62,7 +62,7 @@ data class Position(
             jsonPosition.addProperty("latitude", position.latitude)
             jsonPosition.addProperty("longitude", position.longitude)
             jsonPosition.addProperty("speed", position.speed)
-            jsonPosition.addProperty("time", position.time.toString())
+            jsonPosition.addProperty("time", position.time.toEpochSecond())
             jsonPosition.addProperty("distance", position.distance)
             jsonPosition.addProperty("route_id", position.route?.id)
 
