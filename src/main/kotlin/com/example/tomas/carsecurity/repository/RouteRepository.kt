@@ -15,5 +15,7 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
 
     fun countByCar_Username(username: String): Long
 
+    fun countByCar_Id(carId: Long): Long
+
     fun findAllByCarIn(cars: List<Car>): List<Route>
 }

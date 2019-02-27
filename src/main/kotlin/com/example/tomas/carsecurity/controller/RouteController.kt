@@ -219,6 +219,25 @@ class RouteController(
         val routes = routeRepository.countByCar_Username(principal.name)
         return createJsonSingle("count", routes.toString())
     }
+
+    @ResponseBody
+    @GetMapping(ROUTE_COUNT_MAPPING, produces = ["application/json; charset=utf-8"])
+    fun countRoutesByCar(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse,
+            @RequestParam(value = "car_id") carId: Long
+    ): String {
+
+        if (principal.name == null) {
+            logger.debug("Principal is null.")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return ""
+        }
+
+        val routes = routeRepository.countByCar_Id(carId)
+        return createJsonSingle("count", routes.toString())
+    }
     private fun updateRouteStatistics(routes: List<Route>) {
 
         val routesToUpdate: MutableList<Route> = mutableListOf()
