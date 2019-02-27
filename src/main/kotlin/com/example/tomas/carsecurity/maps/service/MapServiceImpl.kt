@@ -18,7 +18,7 @@ class MapServiceImpl(
     override fun getStaticMap(startPosition: Position, endPosition: Position): ByteArray {
 
         val url = "https://dev.virtualearth.net/REST/V1/Imagery/Map/Road?" +
-                "mapSize=400,300&" +
+                "mapSize=600,400&" +
                 "fmt=png&" +
                 "key=$bingKey"
 
