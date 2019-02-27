@@ -221,7 +221,7 @@ class RouteController(
     }
 
     @ResponseBody
-    @GetMapping(ROUTE_COUNT_MAPPING, produces = ["application/json; charset=utf-8"])
+    @GetMapping(ROUTE_COUNT_MAPPING, produces = ["application/json; charset=utf-8"], params = ["car_id"])
     fun countRoutesByCar(
             principal: Principal,
             request: HttpServletRequest,
