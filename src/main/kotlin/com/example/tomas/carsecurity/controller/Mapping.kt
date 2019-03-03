@@ -9,6 +9,8 @@ const val ROUTE_COUNT_MAPPING = "/route/count"
 const val MAP_MAPPING = "/route/map"
 const val EVENT_MAPPING = "/event"
 const val POSITION_MAPPING = "/position"
+const val STATUS_MAPPING = "/status"
+
 
 
 // TODO maybe move to some other file. This is Mapping file not JSON file
