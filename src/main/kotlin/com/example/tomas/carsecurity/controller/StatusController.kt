@@ -86,7 +86,7 @@ class StatusController(
                 result.setResult(ResponseEntity(HttpStatus.UNAUTHORIZED))
             }
 
-            sendFirebaseStatus()
+            sendFirebaseStatus(car.get().firebaseToken)
 
             lock.lock()
             conditionMap[carId] = lock.newCondition()
@@ -106,12 +106,12 @@ class StatusController(
         return result
     }
 
-    private fun sendFirebaseStatus(){
+    private fun sendFirebaseStatus(token: String){
 
         val message = Message.builder()
                 .putData("score", "850")
                 .putData("time", "2:45")
-//                .setToken(registrationToken) // TODO get registration token from device
+                .setToken(token)
                 .build()
 
 
