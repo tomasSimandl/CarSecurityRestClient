@@ -10,6 +10,7 @@ const val MAP_MAPPING = "/route/map"
 const val EVENT_MAPPING = "/event"
 const val POSITION_MAPPING = "/position"
 const val STATUS_MAPPING = "/status"
+const val FIREBASE_TOKEN_MAPPING = "/token"
 
 
 

@@ -24,7 +24,10 @@ data class Car(
         var name: String = "",
 
         @Column(nullable = false)
-        var icon: String = ""
+        var icon: String = "",
+
+        @Column(name = "firebase_token" ,nullable = false)
+        var firebaseToken: String = ""
 ) {
 
         companion object CarSerializer : GeneralSerializer() {
