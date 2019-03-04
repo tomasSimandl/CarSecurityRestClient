@@ -2,22 +2,20 @@ package com.example.tomas.carsecurity.controller
 
 import com.example.tomas.carsecurity.model.dto.StatusCreate
 import com.example.tomas.carsecurity.repository.CarRepository
-import com.google.gson.Gson
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.Message
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.context.request.async.DeferredResult
 import java.security.Principal
-import java.util.concurrent.Callable
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
-import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import com.google.firebase.messaging.FirebaseMessaging
-import com.google.firebase.messaging.Message
 
 
 @RestController
@@ -98,7 +96,7 @@ class StatusController(
             if (status == null){
                 result.setResult(ResponseEntity(HttpStatus.REQUEST_TIMEOUT))
             } else {
-                result.setResult(ResponseEntity.ok(Gson().toJson(status)))
+                result.setResult(ResponseEntity.ok(ObjectMapper().writeValueAsString(status)))
             }
 
         }.start()
