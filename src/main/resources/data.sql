@@ -1,6 +1,6 @@
 
-INSERT INTO car (id, username, name, icon) VALUES (1, "user", "Trabant", "");
-INSERT INTO car (id, username, name, icon) VALUES (2, "admin", "Favorit", "");
+INSERT INTO car (id, username, name, icon, firebase_token) VALUES (1, "user", "Trabant", "", "");
+INSERT INTO car (id, username, name, icon, firebase_token) VALUES (2, "admin", "Favorit", "", "");
 
 INSERT INTO route (id, avg_speed, length, seconds_of_travel, car_id, time, note) VALUES (1, -1, -1, -1, 1, "2019-01-02T10:15:30", "car 1");
 INSERT INTO route (id, avg_speed, length, seconds_of_travel, car_id, time, note) VALUES (2, -1, -1, -1, 1, "2019-01-02T10:15:31", "car 1");
