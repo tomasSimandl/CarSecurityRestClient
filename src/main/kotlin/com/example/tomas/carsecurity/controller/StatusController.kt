@@ -84,7 +84,7 @@ class StatusController(
                 result.setResult(ResponseEntity(HttpStatus.UNAUTHORIZED))
             }
 
-            sendFirebaseStatus(car.get().firebaseToken)
+            sendFirebaseStatus(car.get().firebaseToken, principal.name)
 
             lock.lock()
             conditionMap[carId] = lock.newCondition()
@@ -104,14 +104,17 @@ class StatusController(
         return result
     }
 
-    private fun sendFirebaseStatus(token: String){
+    private fun sendFirebaseStatus(token: String, username: String){
+        if (token.isBlank()) {
+            logger.warn("Firebase token is empty.")
+            return
+        }
 
         val message = Message.builder()
-                .putData("score", "850")
-                .putData("time", "2:45")
+                .putData("command", "Status")
+                .putData("username", username)
                 .setToken(token)
                 .build()
-
 
         val response = FirebaseMessaging.getInstance().send(message)
         logger.debug("Successfully sent message: $response")
