@@ -5,6 +5,7 @@ import com.example.tomas.carsecurity.model.Position
 import com.example.tomas.carsecurity.model.dto.EventCreate
 import com.example.tomas.carsecurity.model.dto.EventUpdate
 import com.example.tomas.carsecurity.repository.*
+import com.example.tomas.carsecurity.service.MailService
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.*
@@ -21,7 +22,8 @@ class EventController(
         private val eventTypeRepository: EventTypeRepository,
         private val carRepository: CarRepository,
         private val positionRepository: PositionRepository,
-        private val deleteUtil: DeleteUtil
+        private val deleteUtil: DeleteUtil,
+        private val mailService: MailService
 ) {
 
     private val logger = LoggerFactory.getLogger(EventController::class.java)
@@ -78,6 +80,8 @@ class EventController(
         val event = Event(0, eventType.get(), zonedDateTime, position, car.get(), eventCreate.note)
         eventRepository.save(event)
         logger.debug("Created new event")
+
+        mailService.sendEvent(event, principal)
 
         response.status = HttpServletResponse.SC_CREATED
         return ""

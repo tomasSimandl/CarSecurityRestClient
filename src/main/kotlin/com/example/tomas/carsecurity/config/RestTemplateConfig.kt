@@ -1,4 +1,4 @@
-package com.example.tomas.carsecurity.maps
+package com.example.tomas.carsecurity.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
