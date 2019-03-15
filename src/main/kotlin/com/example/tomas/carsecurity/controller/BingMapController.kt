@@ -2,7 +2,6 @@ package com.example.tomas.carsecurity.controller
 
 import com.example.tomas.carsecurity.maps.service.MapService
 import com.example.tomas.carsecurity.model.Route
-import com.example.tomas.carsecurity.repository.CarRepository
 import com.example.tomas.carsecurity.repository.PositionRepository
 import com.example.tomas.carsecurity.repository.RouteRepository
 import org.apache.commons.io.FileUtils
@@ -10,19 +9,15 @@ import org.apache.commons.io.IOUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.client.RestTemplate
 import java.io.File
 import java.io.FileInputStream
-import java.io.InputStream
-import java.io.InputStreamReader
 import java.security.Principal
-import javax.servlet.ServletContext
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
 @RestController
-class MapController(
+class BingMapController(
         private val routeRepository: RouteRepository,
         private val positionRepository: PositionRepository,
         private val mapService: MapService,
@@ -31,7 +26,7 @@ class MapController(
         private val uploadFileFolder: String
 ) {
 
-    private val logger = LoggerFactory.getLogger(MapController::class.java)
+    private val logger = LoggerFactory.getLogger(BingMapController::class.java)
 
     @ResponseBody
     @GetMapping(MAP_MAPPING)
