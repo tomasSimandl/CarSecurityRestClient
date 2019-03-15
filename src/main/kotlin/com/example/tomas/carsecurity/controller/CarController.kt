@@ -7,6 +7,7 @@ import com.example.tomas.carsecurity.repository.CarRepository
 import com.example.tomas.carsecurity.repository.DeleteUtil
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 import javax.servlet.http.HttpServletRequest
@@ -113,6 +114,30 @@ class CarController(
         }
 
         deleteUtil.deleteCars(listOf(car.get()))
+        return ""
+    }
+
+    @ResponseBody
+    @DeleteMapping(CAR_MAPPING, produces = ["application/json; charset=utf-8"])
+    fun deleteCarsByUser(
+            principal: Principal,
+            request: HttpServletRequest,
+            response: HttpServletResponse
+    ): String {
+
+        if (principal.name == null) {
+            logger.debug("Principal is null.")
+            response.status = HttpServletResponse.SC_UNAUTHORIZED
+            return ""
+        }
+
+        val cars = carRepository.findAllByUsername(principal.name, Pageable.unpaged())
+        if (cars.isEmpty) {
+            logger.debug("No cars to delete.")
+            return ""
+        }
+
+        deleteUtil.deleteCars(cars.content)
         return ""
     }
 
