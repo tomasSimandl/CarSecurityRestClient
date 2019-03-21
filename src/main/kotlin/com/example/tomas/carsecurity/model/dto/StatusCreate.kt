@@ -15,7 +15,7 @@ data class StatusCreate(
         @SerializedName("is_power_save_mode")
         val powerSaveMode: Boolean,
 
-        val utils: Map<String, Boolean>,
+        val tools: Map<String, Boolean>,
 
         val time: Long,
 
