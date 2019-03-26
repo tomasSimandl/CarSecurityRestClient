@@ -45,7 +45,7 @@ class CarController(
             return createJsonSingle("error", "Name can not be empty.")
         }
 
-        var car = Car(username = principal.name, name = carCreate.name, icon = carCreate.icon)
+        var car = Car(username = principal.name, name = carCreate.name, note = carCreate.note)
         car = carRepository.save(car)
 
         logger.debug("New car created.")
@@ -84,7 +84,7 @@ class CarController(
         }
 
         dbCar.get().name = carUpdate.name
-        dbCar.get().icon = carUpdate.icon
+        dbCar.get().note = carUpdate.note
 
         carRepository.save(dbCar.get())
         logger.debug("Car updated.")

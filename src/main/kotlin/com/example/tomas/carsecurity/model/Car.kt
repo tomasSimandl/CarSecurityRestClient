@@ -24,7 +24,7 @@ data class Car(
         var name: String = "",
 
         @Column(nullable = false)
-        var icon: String = "",
+        var note: String = "",
 
         @Column(name = "firebase_token" ,nullable = false)
         var firebaseToken: String = ""
@@ -40,7 +40,7 @@ data class Car(
                         jsonCar.addProperty("routes", car.routes.size)
                         jsonCar.addProperty("events", car.events.size)
                         jsonCar.addProperty("name", car.name)
-                        jsonCar.addProperty("icon", car.icon)
+                        jsonCar.addProperty("note", car.note)
                         jsonCar
                 }
 
