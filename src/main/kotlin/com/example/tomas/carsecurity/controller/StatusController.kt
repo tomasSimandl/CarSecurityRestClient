@@ -17,20 +17,41 @@ import java.util.concurrent.locks.ReentrantLock
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-
+/**
+ * Class is used for handle status request from web application.
+ *
+ * @param carRepository is repository used for access cars in database.
+ */
 @RestController
 class StatusController(
         private val carRepository: CarRepository
 ) {
 
+    /** Logger for this class */
     private val logger = LoggerFactory.getLogger(StatusController::class.java)
 
+    /**
+     * Object used for keep variables static across all requests.
+     */
     private companion object {
+        /** Lock for access [conditionMap] and [statusMap] */
         private val lock: ReentrantLock = ReentrantLock()
+        /** Map contains condition variables on which request waiting on response from Android */
         private val conditionMap: MutableMap<Long, Condition> = HashMap()
+        /** Map of statuses which were get from android and not send to back to web client yet. */
         private val statusMap: MutableMap<Long, StatusCreate> = HashMap()
     }
 
+    /**
+     * Method create new status in [statusMap] and wait web request which waiting on this status
+     * Returned status code can be CREATED, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for creating status.
+     * @param response to creating status request.
+     * @param status which will be created in [statusMap].
+     * @return Empty string or json with error message on BAD_REQUEST.
+     */
     @PostMapping(STATUS_MAPPING)
     fun createStatus(
             principal: Principal,
@@ -61,7 +82,17 @@ class StatusController(
         return ""
     }
 
-
+    /**
+     * Method init Firebase request which is send to device and sleep on condition which is stored in [conditionMap].
+     * On wake up or timeout method check [statusMap] if there is some data for it and return REQUEST_TIMOUT or status.
+     * Returned status code can be OK, UNAUTHORIZED, BAD_REQUEST, REQUEST_TIMEOUT
+     *
+     * @param principal of actual logged user.
+     * @param request for getting status.
+     * @param response to getting status request.
+     * @param carId is identification of car of which status is requested.
+     * @return Json with status, json with error message on BAD_REQUEST or empty string.
+     */
     @GetMapping(STATUS_MAPPING)
     fun getStatus(
             principal: Principal,
@@ -93,7 +124,7 @@ class StatusController(
             val status = statusMap.remove(carId)
             lock.unlock()
 
-            if (status == null){
+            if (status == null) {
                 result.setResult(ResponseEntity(HttpStatus.REQUEST_TIMEOUT))
             } else {
                 result.setResult(ResponseEntity.ok(Gson().toJson(status)))
@@ -104,7 +135,13 @@ class StatusController(
         return result
     }
 
-    private fun sendFirebaseStatus(token: String, username: String){
+    /**
+     * Method send get status command to Firebase which deliver message to device identified by [token].
+     *
+     * @param token which identified device.
+     * @param username which is append to message for additional security.
+     */
+    private fun sendFirebaseStatus(token: String, username: String) {
         if (token.isBlank()) {
             logger.warn("Firebase token is empty.")
             return

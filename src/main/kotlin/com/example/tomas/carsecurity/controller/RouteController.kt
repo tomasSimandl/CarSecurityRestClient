@@ -17,7 +17,15 @@ import java.util.*
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-
+/**
+ * This controller is used for access and manage routes in database.
+ * User is authorized to access only his own data.
+ *
+ * @param positionRepository is repository for access positions in database.
+ * @param routeRepository is repository for access routes in database.
+ * @param carRepository is repository for access cars in database.
+ * @param deleteUtil is used for removing route and all its positions from database.
+ */
 @RestController
 class RouteController(
         private val routeRepository: RouteRepository,
@@ -26,8 +34,20 @@ class RouteController(
         private val deleteUtil: DeleteUtil
 ) {
 
+    /** Logger of this class */
     private val logger = LoggerFactory.getLogger(RouteController::class.java)
 
+    /**
+     * Method create new route in database.
+     * Returned status code can be OK, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for creating route.
+     * @param response to creating route request.
+     * @param carId identification number of car which creates the route.
+     * @param time is start time of route.
+     * @return Json with id of created route, json with error message on BAD_REQUEST or empty string on UNAUTHORIZED.
+     */
     @ResponseBody
     @PostMapping(ROUTE_MAPPING, produces = ["application/json; charset=utf-8"])
     fun createRoute(
@@ -56,7 +76,7 @@ class RouteController(
         val instant = Instant.ofEpochMilli(time)
         val zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)
 
-        var route = Route( positions = ArrayList(), time = zonedDateTime, car = car.get())
+        var route = Route(positions = ArrayList(), time = zonedDateTime, car = car.get())
         route = routeRepository.save(route)
 
         logger.debug("New route created.")
@@ -64,6 +84,16 @@ class RouteController(
         return createJsonSingle("route_id", route.id.toString())
     }
 
+    /**
+     * Method update note of route in database.
+     * Returned status code can be OK, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for getting positions.
+     * @param response to getting positions request.
+     * @param routeUpdate is route which will be updated.
+     * @return Empty string or json with error message on BAD_REQUEST.
+     */
     @ResponseBody
     @PutMapping(ROUTE_MAPPING, produces = ["application/json; charset=utf-8"])
     fun updateRoutesNote(
@@ -76,7 +106,7 @@ class RouteController(
         logger.info("Route update request.")
 
         val dbRoute = routeRepository.findById(routeUpdate.id)
-        if(!dbRoute.isPresent) {
+        if (!dbRoute.isPresent) {
             logger.debug("Route does not exists")
             response.status = HttpServletResponse.SC_BAD_REQUEST
             return createJsonSingle("error", "Route does not exists")
@@ -95,6 +125,16 @@ class RouteController(
         return ""
     }
 
+    /**
+     * Method delete given route from database.
+     * Returned status code can be OK, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for remove route.
+     * @param response to remove route request.
+     * @param routeId identification number of route.
+     * @return Empty string or json with error message on BAD_REQUEST.
+     */
     @ResponseBody
     @DeleteMapping(ROUTE_MAPPING, params = ["route_id"], produces = ["application/json; charset=utf-8"])
     fun deleteRouteById(
@@ -121,6 +161,17 @@ class RouteController(
         return ""
     }
 
+    /**
+     * Method return page of routes of actual logged user.
+     * Returned status code can be OK, UNAUTHORIZED
+     *
+     * @param principal of actual logged user.
+     * @param request for getting routes of logged user.
+     * @param response to getting routes of logged user request.
+     * @param page of routes divided by [limit].
+     * @param limit of routes per page.
+     * @return Json of users routes or empty string on UNAUTHORIZED.
+     */
     @ResponseBody
     @GetMapping(ROUTE_MAPPING, produces = ["application/json; charset=utf-8"])
     fun getRoutesOfLogUser(
@@ -143,7 +194,16 @@ class RouteController(
         return Route.gson.toJson(routes.content)
     }
 
-
+    /**
+     * Method return route of given id from database.
+     * Returned status code can be OK, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for getting route.
+     * @param response to getting route request.
+     * @param routeId identification number of route.
+     * @return Json with route, json with error message on BAD_REQUEST or empty string on UNAUTHORIZED.
+     */
     @ResponseBody
     @GetMapping(ROUTE_MAPPING, params = ["route_id"], produces = ["application/json; charset=utf-8"])
     fun getRouteById(
@@ -171,6 +231,18 @@ class RouteController(
         return Route.gson.toJson(routeList.first())
     }
 
+    /**
+     * Method return page of routes of given car in database.
+     * Returned status code can be OK, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for getting routes of car
+     * @param response to getting reoutes of car request.
+     * @param carId identification number of car.
+     * @param page of routes divided by [limit].
+     * @param limit of routes per page.
+     * @return Json of routes, json with error message on BAD_REQUEST or empty string on UNAUTHORIZED.
+     */
     @ResponseBody
     @GetMapping(ROUTE_MAPPING, params = ["car_id"], produces = ["application/json; charset=utf-8"])
     fun getRoutesByCarId(
@@ -201,6 +273,15 @@ class RouteController(
         return Route.gson.toJson(routes.content)
     }
 
+    /**
+     * Method return number or routes of logged user in database.
+     * Returned status code can be OK, UNAUTHORIZED
+     *
+     * @param principal of actual logged user.
+     * @param request for getting number of routes.
+     * @param response to getting number of routes request.
+     * @return Json with number of routes or empty string on UNAUTHORIZED.
+     */
     @ResponseBody
     @GetMapping(ROUTE_COUNT_MAPPING, produces = ["application/json; charset=utf-8"])
     fun countRoutesOfLogUser(
@@ -215,11 +296,20 @@ class RouteController(
             return ""
         }
 
-
         val routes = routeRepository.countByCar_Username(principal.name)
         return createJsonSingle("count", routes.toString())
     }
 
+    /**
+     * Method return number or routes of given car in database.
+     * Returned status code can be OK, UNAUTHORIZED
+     *
+     * @param principal of actual logged user.
+     * @param request for getting number of routes.
+     * @param response to getting number of routes request.
+     * @param carId identification of car of which routes we want to count.
+     * @return Json with number of routes or empty string on UNAUTHORIZED.
+     */
     @ResponseBody
     @GetMapping(ROUTE_COUNT_MAPPING, produces = ["application/json; charset=utf-8"], params = ["car_id"])
     fun countRoutesByCar(
@@ -238,6 +328,12 @@ class RouteController(
         val routes = routeRepository.countByCar_Id(carId)
         return createJsonSingle("count", routes.toString())
     }
+
+    /**
+     * Method update statistics of input routes in database by calling route method updateStatistics.
+
+     * @param routes list of routes of which statistics will be updated.
+     */
     private fun updateRouteStatistics(routes: List<Route>) {
 
         val routesToUpdate: MutableList<Route> = mutableListOf()

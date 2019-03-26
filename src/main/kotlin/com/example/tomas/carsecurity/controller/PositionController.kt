@@ -13,12 +13,17 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.web.bind.annotation.*
 import java.io.File
 import java.security.Principal
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+/**
+ * This controller is used for access and manage positions in database.
+ * User is authorized to access only his own data.
+ *
+ * @param positionRepository is repository for access positions in database.
+ * @param routeRepository is repository fo access routes in database.
+ * @param uploadFileFolder is path to folder with images of map downloaded from Bing.
+ */
 @RestController
 class PositionController(
         private val positionRepository: PositionRepository,
@@ -28,9 +33,23 @@ class PositionController(
         private val uploadFileFolder: String
 ) {
 
+    /** Logger of this class */
     private val logger = LoggerFactory.getLogger(PositionController::class.java)
+    /** Map for caching routes from database. */
     private val cacheRoutes = HashMap<Long, Route>()
 
+
+    /**
+     * Method take input array of positions and store it in database. When any positions contain null as a route id or
+     * user has no privilege for requested route no position is stored and error code is returned.
+     * Returned status code can be CREATED, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for creating positions.
+     * @param response to creating positions request.
+     * @param positions array of positions which will be stored to database.
+     * @return empty string or json with error message on BAD_REQUEST.
+     */
     @ResponseBody
     @PostMapping(POSITION_MAPPING, produces = ["application/json; charset=utf-8"])
     fun savePositions(
@@ -43,7 +62,7 @@ class PositionController(
         logger.info("Starts creating of new positions.")
         assert(cacheRoutes.isEmpty())
 
-        if(principal.name == null){
+        if (principal.name == null) {
             logger.debug("User is not logged in.")
             response.status = HttpServletResponse.SC_UNAUTHORIZED
             return ""
@@ -88,16 +107,19 @@ class PositionController(
     }
 
     /**
-     * Remove cached images of routes because route was changed.
+     * Remove cached images of cached routes because route was changed.
      */
-    private fun removeMapOfEditedRoutes(){
+    private fun removeMapOfEditedRoutes() {
         for (route in cacheRoutes.values) {
             val file = File("$uploadFileFolder/route-${route.id}.png")
             FileUtils.deleteQuietly(file)
         }
     }
 
-    private fun removeCalculateDataOfEditedRoutes(){
+    /**
+     * Method removes calculated data of all routes in cache, because route was chenged.
+     */
+    private fun removeCalculateDataOfEditedRoutes() {
         for (route in cacheRoutes.values) {
             route.removeStatistics()
         }
@@ -105,6 +127,18 @@ class PositionController(
         routeRepository.saveAll(cacheRoutes.values)
     }
 
+    /**
+     * Method return page of positions given by route.
+     * Returned status code can be OK, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for getting positions.
+     * @param response to getting positions request.
+     * @param routeId identification number of route.
+     * @param page of positions divided by [limit].
+     * @param limit of positions per page.
+     * @return Json of positions, json with error message on BAD_REQUEST or empty string on UNAUTHORIZED.
+     */
     @ResponseBody
     @GetMapping(POSITION_MAPPING, params = ["route_id"], produces = ["application/json; charset=utf-8"])
     fun getPositions(
@@ -117,13 +151,13 @@ class PositionController(
     ): String {
 
         val route = routeRepository.findById(routeId)
-        if(!route.isPresent) {
+        if (!route.isPresent) {
             logger.debug("Requested route does not exists")
             response.status = HttpServletResponse.SC_BAD_REQUEST
             return createJsonSingle("error", "Route does not exists.")
         }
 
-        if(principal.name == null || route.get().car.username != principal.name) {
+        if (principal.name == null || route.get().car.username != principal.name) {
             logger.debug("User: ${principal.name} is not allowed to get route: $routeId")
             response.status = HttpServletResponse.SC_UNAUTHORIZED
             return ""
@@ -136,6 +170,13 @@ class PositionController(
     }
 
 
+    /**
+     * Method operate with cache [cacheRoutes]. When requested route is in cache, route is taken from cache.
+     * When route is not in cache, route is load from database, stored in [cacheRoutes] and than returned.
+     *
+     * @param routeId identification of requested route.
+     * @return route or null when route is not in database.
+     */
     private fun getRoute(routeId: Long): Route? {
 
         if (cacheRoutes.containsKey(routeId)) {
@@ -150,5 +191,4 @@ class PositionController(
 
         return null
     }
-
 }

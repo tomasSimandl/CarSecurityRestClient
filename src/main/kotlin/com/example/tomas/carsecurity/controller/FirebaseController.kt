@@ -9,13 +9,29 @@ import java.security.Principal
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-
+/**
+ * This controller is used for saving firebase token to car. User is authorized to create tokens only for his cars.
+ *
+ * @param carRepository is repository for access cars in database.
+ */
 @RestController
 class FirebaseController(
         private val carRepository: CarRepository
 ) {
+    /** Logger of this class */
     private val logger = LoggerFactory.getLogger(FirebaseController::class.java)
 
+    /**
+     * Method store [token] to table car in database.
+     * Returned status code can be CREATED, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for store Firebase token.
+     * @param response to store Firebase token request.
+     * @param carId identification of car in which will be stored token.
+     * @param token which will be saved to car database.
+     * @return Empty String or json with error message on BAD_REQUEST.
+     */
     @PostMapping(FIREBASE_TOKEN_MAPPING)
     fun saveToken(
             principal: Principal,
@@ -25,7 +41,7 @@ class FirebaseController(
             @RequestParam("token") token: String
     ): String {
 
-        if(token.isBlank()){
+        if (token.isBlank()) {
             logger.debug("Can not save Firebase token. New token is Blank.")
             response.status = HttpServletResponse.SC_BAD_REQUEST
             return createJsonSingle("error", "Empty token")

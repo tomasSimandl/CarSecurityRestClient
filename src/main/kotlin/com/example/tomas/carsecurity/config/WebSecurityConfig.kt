@@ -11,20 +11,30 @@ import org.springframework.security.oauth2.provider.authentication.OAuth2Authent
 import org.springframework.security.oauth2.provider.token.RemoteTokenServices
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices
 
-
+/**
+ * Class is used for configuration of this resource server.
+ */
 @Configuration
 @EnableWebSecurity
 class WebSecurityConfig(
+
+        /** Url of authorization server */
         @Value("\${oauth2.check.token.url}")
         private val checkTokenUrl: String,
 
+        /** Id of this client (resource server) */
         @Value("\${oauth2.client.client-id}")
         private val clientId: String,
 
+        /** Secret for this client (resource server) */
         @Value("\${oauth2.client.client-secret}")
         private val clientSecret: String
 ) : WebSecurityConfigurerAdapter() {
 
+    /**
+     * Authorization setting of resource access. All request must be authenticated.
+     * @param http HttpSecurity object on which is set authentication privileges.
+     */
     override fun configure(http: HttpSecurity) {
         http
                 .authorizeRequests()
@@ -32,6 +42,9 @@ class WebSecurityConfig(
                 .authenticated()
     }
 
+    /**
+     * Configuration of token service for authenticated over authorization server.
+     */
     @Bean
     fun tokenServices(): ResourceServerTokenServices {
         val tokenServices = RemoteTokenServices()
@@ -41,6 +54,9 @@ class WebSecurityConfig(
         return tokenServices
     }
 
+    /**
+     * Configuration of authentication manager. As a token service is used [tokenServices].
+     */
     override fun authenticationManagerBean(): AuthenticationManager {
         val authenticationManager = OAuth2AuthenticationManager()
         authenticationManager.setTokenServices(tokenServices())

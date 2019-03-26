@@ -12,13 +12,32 @@ import java.security.Principal
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
+/**
+ * This controller is used for sending commands to Android device over Firebase FCM.
+ *
+ * @param carRepository is repository user for access cars in database.
+ */
 @RestController
 class ToolController(
         private val carRepository: CarRepository
 ) {
 
+    /** Logger of this class */
     private val logger = LoggerFactory.getLogger(ToolController::class.java)
 
+    /**
+     * Method send activate/deactivate tool command to Firebase which deliver message to device
+     * over [sendFirebaseSwitch] method.
+     * Returned status code can be CREATED, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for sending command.
+     * @param response to sending command request.
+     * @param action is command which will be created
+     * @param carId is identification to which will be send command.
+     * @param tool is tool to which will be command applied.
+     * @return Empty string or json with error message on BAD_REQUEST.
+     */
     @PostMapping("$TOOL_MAPPING/{action}")
     fun switchTool(
             principal: Principal,
@@ -29,7 +48,7 @@ class ToolController(
             @PathVariable action: String
     ): String {
 
-        if (tool.isBlank() || action.isBlank()){
+        if (tool.isBlank() || action.isBlank()) {
             logger.debug("Empty input parameters")
             response.status = HttpServletResponse.SC_BAD_REQUEST
             return createJsonSingle("error", "Invalid parameters")
@@ -54,7 +73,15 @@ class ToolController(
         return ""
     }
 
-    private fun sendFirebaseSwitch(command: String, username: String, tool: String, token: String){
+    /**
+     * Method send activate/deactivate tool command to Firebase which deliver message to device.
+     *
+     * @param command is command to device
+     * @param username is appended to request for additional security.
+     * @param tool which on which will be applied command.
+     * @param token for identification of device by Firebase server.
+     */
+    private fun sendFirebaseSwitch(command: String, username: String, tool: String, token: String) {
         if (token.isBlank()) {
             logger.warn("Firebase token is empty.")
             return
@@ -66,7 +93,7 @@ class ToolController(
                 .putData("username", username)
                 .setToken(token)
                 .build()
-        
+
         val response = FirebaseMessaging.getInstance().send(message)
         logger.debug("Successfully sent message: $response")
     }

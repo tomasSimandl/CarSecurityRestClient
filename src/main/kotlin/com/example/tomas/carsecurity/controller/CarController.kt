@@ -13,15 +13,32 @@ import java.security.Principal
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-
+/**
+ * This controller is used for access and manage cars in database. User is authorized to access only his own cars.
+ *
+ * @param carRepository is repository for access cars in database.
+ * @param deleteUtil is util used for delete cars and all his events and routes.
+ */
 @RestController
 class CarController(
         private val carRepository: CarRepository,
         private val deleteUtil: DeleteUtil
 ) {
 
+    /** Logger of this class */
     private val logger = LoggerFactory.getLogger(CarController::class.java)
 
+    /**
+     * Method create new car in database.
+     * Returned status code can be CREATED, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for create car
+     * @param response on create car request
+     * @param carCreate car which will be created in database.
+     * @return Json with created car_id on CREATED, Json with error message on BAD_REQUEST
+     *          or empty String on UNAUTHORIZED.
+     */
     @ResponseBody
     @PostMapping(CAR_MAPPING, produces = ["application/json; charset=utf-8"])
     fun createCar(
@@ -39,7 +56,7 @@ class CarController(
             return ""
         }
 
-        if (carCreate.name.isBlank()){
+        if (carCreate.name.isBlank()) {
             logger.debug("Can not create car with empty name.")
             response.status = HttpServletResponse.SC_BAD_REQUEST
             return createJsonSingle("error", "Name can not be empty.")
@@ -53,6 +70,18 @@ class CarController(
         return createJsonSingle("car_id", car.id.toString())
     }
 
+    /**
+     * Method update given car in database. Id of [carUpdate] must be set.
+     * Logged user must be owner of updated car.
+     *
+     * Returned status code can be OK, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for update car.
+     * @param response on update car request.
+     * @param carUpdate car which will be updated.
+     * @return Empty String or json with error message on BAD_REQUEST.
+     */
     @ResponseBody
     @PutMapping(CAR_MAPPING, produces = ["application/json; charset=utf-8"])
     fun updateCar(
@@ -65,7 +94,7 @@ class CarController(
         logger.info("Update new car request.")
 
         val dbCar = carRepository.findById(carUpdate.id)
-        if(!dbCar.isPresent) {
+        if (!dbCar.isPresent) {
             logger.debug("Can not update not existing car")
             response.status = HttpServletResponse.SC_BAD_REQUEST
             return createJsonSingle("error", "Car does not exists")
@@ -77,7 +106,7 @@ class CarController(
             return ""
         }
 
-        if (carUpdate.name.isBlank()){
+        if (carUpdate.name.isBlank()) {
             logger.debug("Can not create car with empty name.")
             response.status = HttpServletResponse.SC_BAD_REQUEST
             return createJsonSingle("error", "Name can not be empty")
@@ -91,6 +120,18 @@ class CarController(
         return ""
     }
 
+    /**
+     * Method delete car from database given car id. Logged user must be owner of deleted car. With car will be
+     * deleted also all events and routes.
+     *
+     * Returned status code can be OK, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for delete car.
+     * @param response on delete car request.
+     * @param carId identification number of car.
+     * @return Empty string or json with error message on BAD_REQUEST.
+     */
     @ResponseBody
     @DeleteMapping(CAR_MAPPING, params = ["car_id"], produces = ["application/json; charset=utf-8"])
     fun deleteCarById(
@@ -117,6 +158,16 @@ class CarController(
         return ""
     }
 
+    /**
+     * Method delete all cars of logged user from database.
+     *
+     * Returned status code can be OK, UNAUTHORIZED.
+     *
+     * @param principal of actual logged user.
+     * @param request for delete users car.
+     * @param response on delete users car request.
+     * @return Empty String.
+     */
     @ResponseBody
     @DeleteMapping(CAR_MAPPING, produces = ["application/json; charset=utf-8"])
     fun deleteCarsByUser(
@@ -141,6 +192,18 @@ class CarController(
         return ""
     }
 
+    /**
+     * Method return list of cars from database which are associated with logged user.
+     *
+     * Returned status code can be OK, UNAUTHORIZED
+     *
+     * @param principal of actual logged user.
+     * @param request for get users cars.
+     * @param response on get users cars request.
+     * @param page of cars divided by [limit].
+     * @param limit of cars per page.
+     * @return Json of requested  cars or empty String on UNAUTHORIZED.
+     */
     @ResponseBody
     @GetMapping(CAR_MAPPING, produces = ["application/json; charset=utf-8"])
     fun getCarsOfLogUser(
@@ -163,6 +226,17 @@ class CarController(
     }
 
 
+    /**
+     * Method return car from database with given id. Logged user must be owner of requested car.
+     *
+     * Returned status code can be OK, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for get car by id.
+     * @param response on get car by id request.
+     * @param carId identification number of car.
+     * @return Json of requested  car, Json with error message on BAD_REQUEST or empty String on UNAUTHORIZED.
+     */
     @ResponseBody
     @GetMapping(CAR_MAPPING, params = ["car_id"], produces = ["application/json; charset=utf-8"])
     fun getCarById(

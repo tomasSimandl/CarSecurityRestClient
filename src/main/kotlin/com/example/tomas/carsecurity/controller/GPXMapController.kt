@@ -14,16 +14,32 @@ import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
 
+/**
+ * Controller for exporting route in GPX format.
+ *
+ * @param routeRepository is repository for access route from database.
+ */
 @RestController
 class GPXMapController(
         private val routeRepository: RouteRepository
 ) {
 
+    /** Logger for this class */
     private val logger = LoggerFactory.getLogger(GPXMapController::class.java)
 
+    /**
+     * Method load route from database and return it in GPX format as a String.
+     * Returned status code can be OK, UNAUTHORIZED, BAD_REQUEST
+     *
+     * @param principal of actual logged user.
+     * @param request for getting GPX route.
+     * @param response to getting GPX route request.
+     * @param routeId identification number of route.
+     * @return GPX format of route or empty string on error.
+     */
     @ResponseBody
     @GetMapping(ROUTE_EXPORT_MAPPING)
-    fun createStaticMap(
+    fun getGPXMap(
             principal: Principal,
             request: HttpServletRequest,
             response: HttpServletResponse,
@@ -54,7 +70,12 @@ class GPXMapController(
         return createGPX(route.get().positions)
     }
 
-
+    /**
+     * Method create and return GPX file format from input positions.
+     *
+     * @param positions of which is created GPX file.
+     * @return String with GPX file of input [positions].
+     */
     private fun createGPX(positions: List<Position>): String {
 
         val trackSegment = TrackSegment.builder()
