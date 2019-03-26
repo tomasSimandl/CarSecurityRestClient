@@ -12,7 +12,8 @@ data class EventCreate(
 
         val position: PositionCreate?,
 
-        val carId: Long, // TODO use JsonProperty("car_id")
+        @JsonProperty("car_id")
+        val carId: Long,
 
         val note: String = ""
 )
