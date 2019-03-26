@@ -28,10 +28,7 @@ class DeleteUtil(
 
     @Transactional
     fun deleteEvents(events: List<Event>) {
-
-        val positions = events.mapNotNull { it.position }
         eventRepository.deleteAll(events)
-        positionRepository.deleteAll(positions)
     }
 
     @Transactional

@@ -20,9 +20,6 @@ data class Event(
         @Column(nullable = false)
         val time: ZonedDateTime,
 
-        @OneToOne
-        val position: Position?,
-
         @ManyToOne(fetch = FetchType.EAGER)
         @JoinColumn(nullable = false)
         val car: Car,
@@ -39,7 +36,6 @@ data class Event(
             jsonEvent.addProperty("id", event.id)
             jsonEvent.addProperty("event_type_name", event.eventType.name)
             jsonEvent.addProperty("time", event.time.toEpochSecond())
-            jsonEvent.addProperty("position_id", event.position?.id)
             jsonEvent.addProperty("car_name", event.car.name)
             jsonEvent.addProperty("note", event.note)
 

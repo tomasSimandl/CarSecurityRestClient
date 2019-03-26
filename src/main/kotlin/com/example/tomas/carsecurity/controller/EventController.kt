@@ -59,25 +59,10 @@ class EventController(
             return createJsonSingle("error", "Selected event type does not exists.")
         }
 
-        val position = if (eventCreate.position == null) {
-            null
-        } else {
-            val instant = Instant.ofEpochMilli(eventCreate.position.time)
-            val zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)
-
-            var newPosition = Position(0, null, eventCreate.position.latitude, eventCreate.position.longitude,
-                    eventCreate.position.altitude, zonedDateTime, eventCreate.position.accuracy,
-                    eventCreate.position.speed)
-            newPosition = positionRepository.save(newPosition)
-            logger.debug("Created new position.")
-
-            newPosition
-        }
-
         val instant = Instant.ofEpochMilli(eventCreate.time)
         val zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC)
 
-        val event = Event(0, eventType.get(), zonedDateTime, position, car.get(), eventCreate.note)
+        val event = Event(0, eventType.get(), zonedDateTime, car.get(), eventCreate.note)
         eventRepository.save(event)
         logger.debug("Created new event")
 
