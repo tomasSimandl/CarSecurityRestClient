@@ -1,6 +1,6 @@
 package com.example.tomas.carsecurity.controller
 
-import com.example.tomas.carsecurity.maps.service.MapService
+import com.example.tomas.carsecurity.service.MapService
 import com.example.tomas.carsecurity.model.Route
 import com.example.tomas.carsecurity.repository.PositionRepository
 import com.example.tomas.carsecurity.repository.RouteRepository

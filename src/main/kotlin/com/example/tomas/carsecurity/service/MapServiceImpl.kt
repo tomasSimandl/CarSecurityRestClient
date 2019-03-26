@@ -1,4 +1,4 @@
-package com.example.tomas.carsecurity.maps.service
+package com.example.tomas.carsecurity.service
 
 import com.example.tomas.carsecurity.model.Position
 import org.springframework.beans.factory.annotation.Value
