@@ -20,14 +20,14 @@ INSERT INTO event_type (id, description, name) VALUES (6, "Device was connected 
 INSERT INTO event_type (id, description, name) VALUES (7, "Device was disconnected of external power source", "Power disconnected");
 
 
-INSERT INTO event (id, note, time, car_id, event_type_id, position_id) VALUES (1, "jedna", "2019-01-02T10:15:30", 1, 1, null);
-INSERT INTO event (id, note, time, car_id, event_type_id, position_id) VALUES (2, "dva", "2019-01-02T10:15:31", 1, 1, null);
-INSERT INTO event (id, note, time, car_id, event_type_id, position_id) VALUES (3, "tri", "2019-01-02T10:15:32", 2, 1, null);
-INSERT INTO event (id, note, time, car_id, event_type_id, position_id) VALUES (4, "ctyri", "2019-01-02T10:15:33", 1, 2, null);
-INSERT INTO event (id, note, time, car_id, event_type_id, position_id) VALUES (5, "pet", "2019-01-02T11:25:30", 2, 2, null);
-INSERT INTO event (id, note, time, car_id, event_type_id, position_id) VALUES (6, "sest", "2019-01-12T10:15:30", 1, 2, null);
-INSERT INTO event (id, note, time, car_id, event_type_id, position_id) VALUES (7, "sedm", "2019-01-22T10:15:30", 2, 1, null);
-INSERT INTO event (id, note, time, car_id, event_type_id, position_id) VALUES (8, "osm", "2019-01-23T10:15:30", 2, 1, null);
+INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (1, "jedna", "2019-01-02T10:15:30", 1, 1);
+INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (2, "dva", "2019-01-02T10:15:31", 1, 1);
+INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (3, "tri", "2019-01-02T10:15:32", 2, 1);
+INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (4, "ctyri", "2019-01-02T10:15:33", 1, 2);
+INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (5, "pet", "2019-01-02T11:25:30", 2, 2);
+INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (6, "sest", "2019-01-12T10:15:30", 1, 2);
+INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (7, "sedm", "2019-01-22T10:15:30", 2, 1);
+INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (8, "osm", "2019-01-23T10:15:30", 2, 1);
 
 INSERT INTO `position` VALUES (1,0.1,1.11, 0.1,2.22,3.33,4.44,'2019-01-02 10:15:31',NULL),
                               (2,0.1,2.22, 0.2,3.33,4.44,5.55,'2019-01-02 10:15:32',1),
