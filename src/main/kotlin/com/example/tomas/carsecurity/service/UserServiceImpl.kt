@@ -12,6 +12,12 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import java.security.Principal
 
+/**
+ * Implementation of service which is used for getting resources from authorization server.
+ *
+ * @param authorizationServerUrl url address of authorization server.
+ * @param restTemplate is used for sending requests to authorization server.
+ */
 @Service
 class UserServiceImpl(
 
@@ -21,8 +27,15 @@ class UserServiceImpl(
         private val restTemplate: RestTemplate
 ) : UserService {
 
+    /** Logger of this class. */
     private val logger = LoggerFactory.getLogger(UserServiceImpl::class.java)
 
+    /**
+     * Method request user email from authorization server.
+     *
+     * @param principal identification of user of which email will be requested.
+     * @return String with email address or empty string.
+     */
     override fun getUserEmail(principal: Principal): String {
 
         try {
@@ -45,7 +58,7 @@ class UserServiceImpl(
             val json = JsonParser().parse(entity.body)
             return json.asJsonObject["email"].asString
 
-        } catch (e: Exception){
+        } catch (e: Exception) {
             logger.error("Can not get user details", e)
             return ""
         }

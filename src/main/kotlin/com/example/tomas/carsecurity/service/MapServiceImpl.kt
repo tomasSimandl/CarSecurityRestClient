@@ -7,6 +7,12 @@ import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 
+/**
+ * Service for getting image of static map from Bing Maps API.
+ *
+ * @param bingKey is authorization key to Bing Maps API.
+ * @param restTemplate which is used for sending requests to Bing Maps API.
+ */
 @Service
 class MapServiceImpl(
         @Value("\${bing.map.key}")
@@ -15,6 +21,14 @@ class MapServiceImpl(
         private val restTemplate: RestTemplate
 ) : MapService {
 
+    /**
+     * Method returns static image of map where is marked [startPosition] with green point and [endPosition] with
+     * red point.
+     *
+     * @param startPosition which will be marked on map.
+     * @param endPosition which will be marked on map.
+     * @return ByteArray which contain image of map with two marked points.
+     */
     override fun getStaticMap(startPosition: Position, endPosition: Position): ByteArray {
 
         val url = "https://dev.virtualearth.net/REST/V1/Imagery/Map/Road?" +
@@ -33,6 +47,5 @@ class MapServiceImpl(
 
         val resultEntity = restTemplate.postForEntity(url, entity, ByteArray::class.java)
         return resultEntity.body!!
-
     }
 }
