@@ -6,6 +6,7 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.Message
 import com.google.gson.Gson
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -21,10 +22,14 @@ import javax.servlet.http.HttpServletResponse
  * Class is used for handle status request from web application.
  *
  * @param carRepository is repository used for access cars in database.
+ * @param statusTimeout seconds which will be waiting on device request before timeout
  */
 @RestController
 class StatusController(
-        private val carRepository: CarRepository
+        private val carRepository: CarRepository,
+
+        @Value("\${firebase.status.timeout.seconds}")
+        private val statusTimeout: Long
 ) {
 
     /** Logger for this class */
@@ -119,7 +124,7 @@ class StatusController(
 
             lock.lock()
             conditionMap[carId] = lock.newCondition()
-            conditionMap[carId]?.await(15, TimeUnit.SECONDS)
+            conditionMap[carId]?.await(statusTimeout, TimeUnit.SECONDS)
             conditionMap.remove(carId)
             val status = statusMap.remove(carId)
             lock.unlock()
