@@ -15,7 +15,7 @@ INSERT INTO event_type (id, description, name) VALUES (1, "Util was turn on", "U
 INSERT INTO event_type (id, description, name) VALUES (2, "Util was turn off", "Util Off");
 INSERT INTO event_type (id, description, name) VALUES (3, "Alarm was triggered", "Alarm");
 INSERT INTO event_type (id, description, name) VALUES (4, "Alarm was deactivated", "Alarm Off");
-INSERT INTO event_type (id, description, name) VALUES (5, "Battery information message", "Battery");
+INSERT INTO event_type (id, description, name) VALUES (5, "Battery information message", "Battery is low");
 INSERT INTO event_type (id, description, name) VALUES (6, "Device was connected to external power source", "Power connected");
 INSERT INTO event_type (id, description, name) VALUES (7, "Device was disconnected of external power source", "Power disconnected");
 
