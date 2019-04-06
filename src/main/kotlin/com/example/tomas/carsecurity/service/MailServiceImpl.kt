@@ -34,7 +34,7 @@ class MailServiceImpl(
         when (event.eventType.id) {
             3L, 4L, 5L, 6L, 7L -> {
                 val subject = event.eventType.name
-                val text = event.note
+                val text = "Username: ${event.car.username}\nCar: ${event.car.name}\n${event.note}"
 
                 sendMail(principal, subject, text)
             }
