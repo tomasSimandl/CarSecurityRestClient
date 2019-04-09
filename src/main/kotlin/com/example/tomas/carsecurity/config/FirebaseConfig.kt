@@ -24,7 +24,7 @@ class FirebaseConfig(
         @Value("\${firebase.configuration.file}")
         private val firebaseConfigFile: String = ""
 
-) : WebSecurityConfigurerAdapter() {
+) {
 
     /** Logger of this class. */
     private val logger = LoggerFactory.getLogger(WebSecurityConfigurerAdapter::class.java)
