@@ -1,305 +1,300 @@
 package com.example.tomas.carsecurity.controller
 
+
+import com.example.tomas.carsecurity.anyKotlin
+import com.example.tomas.carsecurity.model.Car
 import com.example.tomas.carsecurity.model.Position
+import com.example.tomas.carsecurity.model.Route
+import com.example.tomas.carsecurity.model.dto.PositionCreate
 import com.example.tomas.carsecurity.repository.PositionRepository
-import com.google.gson.JsonParser
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.domain.Sort
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
+import com.example.tomas.carsecurity.repository.RouteRepository
+import com.nhaarman.mockitokotlin2.argumentCaptor
+import io.grpc.internal.JsonParser
+import org.apache.http.auth.BasicUserPrincipal
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+import org.mockito.ArgumentMatchers
+import org.mockito.Mock
+import org.mockito.Mockito.*
+import org.mockito.MockitoAnnotations
+import org.mockito.internal.verification.Times
+import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpServletResponse
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import java.io.File
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.util.*
+import javax.servlet.http.HttpServletResponse
 
+class PositionControllerTest {
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class PositionControllerTest : BaseControllerTest() {
-
-    private val logger = LoggerFactory.getLogger(PositionControllerTest::class.java)
-
-    @Autowired
+    @Mock
     private lateinit var positionRepository: PositionRepository
+    @Mock
+    private lateinit var routeRepository: RouteRepository
 
-    /** Number of positions in DB */
-    private var positionsCount = 0L
 
-    @BeforeAll
-    fun prepare() {
-        positionsCount = positionRepository.count()
+    private val uploadFileFolder: String = this.javaClass.classLoader.getResource("bing_map").path
+
+    private lateinit var positionController: PositionController
+
+    private lateinit var request: MockHttpServletRequest
+    private lateinit var response: MockHttpServletResponse
+
+    private val positions = ArrayList<Position>()
+    private val car = Car(id = 48, username = "Emanuel")
+    private val route = Route(id = 823, time = ZonedDateTime.now(), car = car, positions = positions)
+    private val createPositions = ArrayList<PositionCreate>()
+
+
+    @Before
+    fun init() {
+        MockitoAnnotations.initMocks(this)
+        request = MockHttpServletRequest()
+        response = MockHttpServletResponse()
+
+        positionController = PositionController(positionRepository, routeRepository, uploadFileFolder)
+
+        val positionTime1 = ZonedDateTime.of(1111, 11, 11, 11, 11, 11, 0, ZoneOffset.UTC)
+        val positionTime2 = ZonedDateTime.of(2222, 2, 22, 22, 22, 22, 0, ZoneOffset.UTC)
+        val positionTime3 = ZonedDateTime.of(3333, 3, 3, 3, 33, 33, 0, ZoneOffset.UTC)
+
+        positions.add(Position(1, route, 1f, 2f, 3f, positionTime1, 4f, 5f, 6f))
+        positions.add(Position(2, route, 7f, 8f, 9f, positionTime2, 10f, 11f, 12f))
+        positions.add(Position(3, route, 13f, 14f, 15f, positionTime3, 16f, 17f, 18f))
+
+        createPositions.add(PositionCreate(1f, 2f, 3f, positionTime1.toEpochSecond() * 1000, 4f, 5f, 6f, 823))
+        createPositions.add(PositionCreate(7f, 8f, 9f, positionTime2.toEpochSecond() * 1000, 10f, 11f, 12f, 23))
+        createPositions.add(PositionCreate(13f, 14f, 15f, positionTime3.toEpochSecond() * 1000, 16f, 17f, 18f, 823))
     }
 
     @Test
-    fun `create new positions success`() {
+    fun `save position null principal`() {
 
-        logger.info("Testing creating of new positions")
+        val principal = mock(UsernamePasswordAuthenticationToken::class.java)
 
-        val accuracy = arrayOf(1.1f, 1.2f, 1.0f, 0.1f, 1000.1f)
-        val altitude = arrayOf(2.2f, 2.3f, 2.4f, 2.6f, 199.2f)
-        val latitude = arrayOf(3.3f, 3.4f, 3.5f, 3.8f, 212.3f)
-        val longitude = arrayOf(4.4f, 4.5f, 4.6f, 4.9f, 456.4f)
-        val time = arrayOf("2019-01-27T10:15:30", "2019-01-27T10:15:31", "2019-01-27T10:15:33", "2019-01-27T10:15:38", "2019-01-27T10:16:30")
-        val speed = arrayOf(5.5f, 6.5f, 7.5f, 12.5f, 205.5f)
-        val routeId = arrayOf(1L, 1L, 1L, 1L, null)
+        doReturn(null).`when`(principal).name
 
-        val requestBody = createRequestBody(accuracy, altitude, latitude, longitude, time, speed, routeId)
-        val result = postRequest(requestBody)
+        val jsonResponse = positionController.savePositions(principal, request, response, createPositions.toTypedArray())
 
-        // Testing
-        assertEquals(201, result.statusCodeValue)
-        assertEquals(null, result.body)
-
-        assertEquals(positionsCount + 5, positionRepository.count())
-
-        val positions = positionRepository.findAll(Sort(Sort.Direction.DESC, "id"))
-
-        val positionsToDelete = ArrayList<Position>()
-        val positionsIterator = positions.iterator()
-        for (i in 0..4) {
-            val position = positionsIterator.next()
-            assertEquals(accuracy.reversedArray()[i], position.accuracy)
-            assertEquals(altitude.reversedArray()[i], position.altitude)
-            assertEquals(latitude.reversedArray()[i], position.latitude)
-            assertEquals(longitude.reversedArray()[i], position.longitude)
-            assertEquals(time.reversedArray()[i], position.time.toString())
-            assertEquals(speed.reversedArray()[i], position.speed)
-            assertEquals(routeId.reversedArray()[i], position.route?.id)
-
-            positionsToDelete.add(position)
-        }
-
-        // Cleaning
-        logger.debug("Removing created positions")
-        positionRepository.deleteAll(positionsToDelete)
-        assertEquals(positionsCount, positionRepository.count())
+        verify(positionRepository, Times(0)).saveAll(anyKotlin(positions::class.java))
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
 
     @Test
-    fun `create new positions invalid route`() {
-        logger.info("Testing creating of new positions with invalid route")
+    fun `save position not existing route`() {
+        val principal = BasicUserPrincipal("Emanuel")
 
-        val accuracy = arrayOf(1.1f, 1.2f, 1.0f, 0.1f, 1000.1f)
-        val altitude = arrayOf(2.2f, 2.3f, 2.4f, 2.6f, 199.2f)
-        val latitude = arrayOf(3.3f, 3.4f, 3.5f, 3.8f, 212.3f)
-        val longitude = arrayOf(4.4f, 4.5f, 4.6f, 4.9f, 456.4f)
-        val time = arrayOf("2019-01-27T10:15:30", "2019-01-27T10:15:31", "2019-01-27T10:15:33", "2019-01-27T10:15:38", "2019-01-27T10:16:30")
-        val speed = arrayOf(5.5f, 6.5f, 7.5f, 12.5f, 205.5f)
-        val routeId = arrayOf(1L, 1L, 111L, 1L, null)
+        val routeOptional: Optional<Route> = Optional.empty()
 
-        val requestBody = createRequestBody(accuracy, altitude, latitude, longitude, time, speed, routeId)
-        val result = postRequest(requestBody)
+        doReturn(routeOptional).`when`(routeRepository).findById(23)
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(823)
 
-        // Testing
-        assertEquals(400, result.statusCodeValue)
-        assertEquals(null, result.body)
-        assertEquals(positionsCount, positionRepository.count())
+        val jsonResponse = positionController.savePositions(principal, request, response, createPositions.toTypedArray())
+
+        verify(routeRepository, Times(2)).findById(anyKotlin(Long::class.java))
+        verify(positionRepository, Times(0)).saveAll(anyKotlin(positions::class.java))
+        assertTrue((JsonParser.parse(jsonResponse) as Map<*, *>).containsKey("error"))
+        assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.status)
     }
 
     @Test
-    fun `create new positions one position`() {
-        logger.info("Testing creating of one new positions")
+    fun `save position not owner of route`() {
+        val principal = BasicUserPrincipal("Zdeněk")
 
-        val accuracy = arrayOf(1.1f)
-        val altitude = arrayOf(2.2f)
-        val latitude = arrayOf(3.3f)
-        val longitude = arrayOf(4.4f)
-        val time = arrayOf("2019-01-27T10:15:30")
-        val speed = arrayOf(5.5f)
-        val routeId: Array<Long?> = arrayOf(1L)
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(823)
 
-        val requestBody = createRequestBody(accuracy, altitude, latitude, longitude, time, speed, routeId)
-        val result = postRequest(requestBody)
+        val jsonResponse = positionController.savePositions(principal, request, response, createPositions.toTypedArray())
 
-        // Testing
-        assertEquals(201, result.statusCodeValue)
-        assertEquals(null, result.body)
-
-        assertEquals(positionsCount + 1, positionRepository.count())
-
-        val positions = positionRepository.findAll(Sort(Sort.Direction.DESC, "id"))
-
-        val position = positions.first()
-        assertEquals(accuracy.first(), position.accuracy)
-        assertEquals(altitude.first(), position.altitude)
-        assertEquals(latitude.first(), position.latitude)
-        assertEquals(longitude.first(), position.longitude)
-        assertEquals(time.first(), position.time.toString())
-        assertEquals(speed.first(), position.speed)
-        assertEquals(routeId.first(), position.route?.id)
-
-        // Cleaning
-        logger.debug("Removing created position")
-        positionRepository.delete(position)
-        assertEquals(positionsCount, positionRepository.count())
+        verify(routeRepository, Times(1)).findById(823)
+        verify(routeRepository, Times(0)).findById(23)
+        verify(positionRepository, Times(0)).saveAll(anyKotlin(positions::class.java))
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
 
     @Test
-    fun `create new positions duplicate positions`() {
+    fun `save position success`() {
+        val principal = BasicUserPrincipal("Emanuel")
+        createPositions[1] = createPositions[1].copy(routeId = null)
 
-        logger.info("Testing creating of new positions with duplicate records")
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
 
-        val accuracy = arrayOf(1.1f, 1.2f, 1.0f, 0.1f, 1.1f)
-        val altitude = arrayOf(2.2f, 2.3f, 2.4f, 2.6f, 2.2f)
-        val latitude = arrayOf(3.3f, 3.4f, 3.5f, 3.8f, 3.3f)
-        val longitude = arrayOf(4.4f, 4.5f, 4.6f, 4.9f, 4.4f)
-        val time = arrayOf("2019-01-27T10:15:30", "2019-01-27T10:15:31", "2019-01-27T10:15:33", "2019-01-27T10:15:38", "2019-01-27T10:15:30")
-        val speed = arrayOf(5.5f, 6.5f, 7.5f, 12.5f, 5.5f)
-        val routeId: Array<Long?> = arrayOf(1L, 1L, 1L, 1L, 1L)
+        val file = File("$uploadFileFolder/route-${route.id}.png")
+        file.createNewFile()
 
-        val requestBody = createRequestBody(accuracy, altitude, latitude, longitude, time, speed, routeId)
-        val result = postRequest(requestBody)
+        val jsonResponse = positionController.savePositions(principal, request, response, createPositions.toTypedArray())
 
-        // Testing
-        assertEquals(409, result.statusCodeValue)
-        assertEquals(null, result.body)
-        assertEquals(positionsCount, positionRepository.count())
+        verify(routeRepository, Times(1)).findById(anyKotlin(Long::class.java))
+        val positionCaptor = argumentCaptor<List<Position>>()
+        verify(positionRepository, Times(1)).saveAll(positionCaptor.capture())
+
+        assertEquals(3, positionCaptor.firstValue.size)
+        positionEquals(positions[0], positionCaptor.firstValue[0])
+        positionEquals(positions[1].copy(route = null), positionCaptor.firstValue[1])
+        positionEquals(positions[2], positionCaptor.firstValue[2])
+
+        val routeCaptor = argumentCaptor<Collection<Route>>()
+        verify(routeRepository).saveAll(routeCaptor.capture())
+        assertEquals(1, routeCaptor.firstValue.size)
+        assertEquals(route.id, routeCaptor.firstValue.first().id)
+        assertEquals(-1f, routeCaptor.firstValue.first().length)
+        assertEquals(-1f, routeCaptor.firstValue.first().avgSpeed)
+        assertEquals(-1, routeCaptor.firstValue.first().secondsOfTravel)
+
+        assertFalse(file.exists())
+
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_CREATED, response.status)
     }
 
-    private fun createRequestBody(accuracy: Array<Float>, altitude: Array<Float>, latitude: Array<Float>,
-                                  longitude: Array<Float>, time: Array<String>, speed: Array<Float>,
-                                  routeId: Array<Long?>): String {
 
-        val requestBody = StringBuilder("[")
-
-        for (i in 0..(accuracy.size - 1)) {
-            requestBody.append("{\n")
-            requestBody.append("   \"accuracy\": ${accuracy[i]},\n")
-            requestBody.append("   \"altitude\": ${altitude[i]},\n")
-            requestBody.append("   \"latitude\": ${latitude[i]},\n")
-            requestBody.append("   \"longitude\": ${longitude[i]},\n")
-            requestBody.append("   \"time\": \"${time[i]}\",\n")
-            requestBody.append("   \"speed\": ${speed[i]},\n")
-            requestBody.append("   \"routeId\": ${routeId[i]}\n")
-            requestBody.append("}")
-            if (i != accuracy.size - 1) requestBody.append(",")
-        }
-        requestBody.append("]")
-
-        return requestBody.toString()
+    private fun positionEquals(expected: Position, actual: Position) {
+        assertEquals(expected.altitude, actual.altitude)
+        assertEquals(expected.longitude, actual.longitude)
+        assertEquals(expected.latitude, actual.latitude)
+        assertEquals(expected.accuracy, actual.accuracy)
+        assertEquals(expected.distance, actual.distance)
+        assertEquals(expected.speed, actual.speed)
+        assertEquals(expected.route?.id, actual.route?.id)
+        assertEquals(expected.time, actual.time)
     }
 
-    private fun postRequest(requestBody: String): ResponseEntity<String> {
-        val url = getUrl(POSITION_MAPPING)
-        logger.debug("Request url: $url")
-        logger.debug("Request params: $requestBody")
+    @Test
+    fun `save position integrity violation`() {
+        val principal = BasicUserPrincipal("Emanuel")
+        createPositions[1] = createPositions[1].copy(routeId = null)
 
-        val headers = HttpHeaders()
-        headers.contentType = MediaType.APPLICATION_JSON
-        val requestData = HttpEntity(requestBody, headers)
-        return testTemplate.postForEntity(url, requestData, String::class.java)
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
+        doThrow(DataIntegrityViolationException::class.java).`when`(positionRepository).saveAll(ArgumentMatchers.any())
+
+        val file = File("$uploadFileFolder/route-${route.id}.png")
+        file.createNewFile()
+
+        val jsonResponse = positionController.savePositions(principal, request, response, createPositions.toTypedArray())
+
+        verify(routeRepository, Times(1)).findById(anyKotlin(Long::class.java))
+
+        assertTrue(file.exists())
+        file.delete()
+
+        assertTrue((JsonParser.parse(jsonResponse) as Map<*, *>).containsKey("error"))
+        assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.status)
     }
 
     @Test
     fun `get positions success`() {
+        val car = Car(123, "John Doe", ArrayList(), ArrayList(), "Trabant", "Bakelite car", "")
+        val route = Route(id = 6782, time = ZonedDateTime.now(), car = car)
+        val position1 = Position(1, route, 9f, 2f, 2f, ZonedDateTime.now(), 9f, 2f, 2f)
+        val position2 = Position(2, route, 2f, 9f, 8f, ZonedDateTime.now(), 4f, 1f, 7f)
+        val positions = listOf(position1, position2)
+        val principal = BasicUserPrincipal("John Doe")
 
-        logger.info("Testing get of positions")
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
+        val pageableCaptor = argumentCaptor<Pageable>()
+        doReturn(PageImpl(positions)).`when`(positionRepository).findAllByRouteId(com.nhaarman.mockitokotlin2.eq(route.id), pageableCaptor.capture())
 
-        val request = HashMap<String, String>()
-        request["route_id"] = "1"
-        val url = addParams(getUrl(POSITION_MAPPING), request)
-        logger.debug("Request url: $url")
+        val jsonResponse = positionController.getPositions(principal, request, response, route.id, 2, 3)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
-
-        // Testing
-        assertEquals(200, result.statusCodeValue)
-
-        val positions = JsonParser().parse(result.body).asJsonArray
-        assertEquals(5, positions.size())
-
-        val expectedIds = arrayListOf(2, 3, 4, 5, 6)
-        for (position in positions) {
-            val id = position.asJsonObject.get("id").asInt
-            Assertions.assertTrue(expectedIds.contains(id))
-            expectedIds.remove(id)
-        }
-
-        Assertions.assertTrue(expectedIds.isEmpty())
+        assertEquals(2, pageableCaptor.firstValue.pageNumber)
+        assertEquals(3, pageableCaptor.firstValue.pageSize)
+        assertEquals(Position.gson.toJson(positions), jsonResponse)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
     }
 
     @Test
-    fun `get events with pages`() {
+    fun `get positions invalid route id`() {
 
-        logger.info("Testing get of positions with pages")
+        val principal = BasicUserPrincipal("John Doe")
+        val routeOptional: Optional<Route> = Optional.empty()
 
-        val request = HashMap<String, String>()
-        request["route_id"] = "1"
-        request["page"] = "1"
-        request["limit"] = "1"
-        val url = addParams(getUrl(POSITION_MAPPING), request)
-        logger.debug("Request url: $url")
+        doReturn(routeOptional).`when`(routeRepository).findById(72)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
+        val jsonResponse = positionController.getPositions(principal, request, response, 123, 1, 3)
 
-        // Testing
-        assertEquals(200, result.statusCodeValue)
-
-        val positions = JsonParser().parse(result.body).asJsonArray
-        assertEquals(1, positions.size())
-        assertEquals(3, positions[0].asJsonObject.get("id").asInt)
+        verify(positionRepository, Times(0)).findAllByRouteId(com.nhaarman.mockitokotlin2.any(), com.nhaarman.mockitokotlin2.any())
+        assertTrue((JsonParser.parse(jsonResponse) as Map<*, *>).containsKey("error"))
+        assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.status)
     }
 
     @Test
-    fun `get events with pages of size 0`() {
+    fun `get positions null principal`() {
+        val car = Car(123, "John Doe", ArrayList(), ArrayList(), "Trabant", "Bakelite car", "")
+        val route = Route(id = 6782, time = ZonedDateTime.now(), car = car)
+        val principal = mock(UsernamePasswordAuthenticationToken::class.java)
 
-        logger.info("Testing get of positions with pages of size 0")
 
-        val request = HashMap<String, String>()
-        request["route_id"] = "1"
-        request["page"] = "0"
-        request["limit"] = "0"
-        val url = addParams(getUrl(POSITION_MAPPING), request)
-        logger.debug("Request url: $url")
+        doReturn(null).`when`(principal).name
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
+        val jsonResponse = positionController.getPositions(principal, request, response, route.id, 1, 3)
 
-        // Testing
-        assertEquals(200, result.statusCodeValue)
-
-        val positions = JsonParser().parse(result.body).asJsonArray
-        assertEquals(1, positions.size())
-        assertEquals(2, positions[0].asJsonObject.get("id").asInt)
+        verify(positionRepository, Times(0)).findAllByRouteId(com.nhaarman.mockitokotlin2.any(), com.nhaarman.mockitokotlin2.any())
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
 
     @Test
-    fun `get positions of route without positions`() {
+    fun `get positions not owner of route`() {
+        val car = Car(123, "John Doe", ArrayList(), ArrayList(), "Trabant", "Bakelite car", "")
+        val route = Route(id = 6782, time = ZonedDateTime.now(), car = car)
+        val principal = BasicUserPrincipal("Michal David")
 
-        logger.info("Testing get of positions of route without positions")
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
 
-        val request = HashMap<String, String>()
-        request["route_id"] = "5"
-        val url = addParams(getUrl(POSITION_MAPPING), request)
-        logger.debug("Request url: $url")
+        val jsonResponse = positionController.getPositions(principal, request, response, route.id, 1, 3)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
-
-        // Testing
-        assertEquals(200, result.statusCodeValue)
-
-        val positions = JsonParser().parse(result.body).asJsonArray
-        assertEquals(0, positions.size())
+        verify(positionRepository, Times(0)).findAllByRouteId(com.nhaarman.mockitokotlin2.any(), com.nhaarman.mockitokotlin2.any())
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
 
     @Test
-    fun `get positions of not existing route`() {
+    fun `get events invalid limit -5`() {
+        val car = Car(123, "John Doe", ArrayList(), ArrayList(), "Trabant", "Bakelite car", "")
+        val route = Route(id = 6782, time = ZonedDateTime.now(), car = car)
+        val position1 = Position(1, route, 9f, 2f, 2f, ZonedDateTime.now(), 9f, 2f, 2f)
+        val position2 = Position(2, route, 2f, 9f, 8f, ZonedDateTime.now(), 4f, 1f, 7f)
+        val positions = listOf(position1, position2)
+        val principal = BasicUserPrincipal("John Doe")
 
-        logger.info("Testing get of positions of not existing route")
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
+        val pageableCaptor = argumentCaptor<Pageable>()
+        doReturn(PageImpl(positions)).`when`(positionRepository).findAllByRouteId(com.nhaarman.mockitokotlin2.eq(route.id), pageableCaptor.capture())
 
-        val request = HashMap<String, String>()
-        request["route_id"] = "111"
-        val url = addParams(getUrl(POSITION_MAPPING), request)
-        logger.debug("Request url: $url")
+        val jsonResponse = positionController.getPositions(principal, request, response, route.id, 2, -5)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
+        assertEquals(2, pageableCaptor.firstValue.pageNumber)
+        assertEquals(1, pageableCaptor.firstValue.pageSize)
+        assertEquals(Position.gson.toJson(positions), jsonResponse)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
+    }
 
-        // Testing
-        assertEquals(200, result.statusCodeValue)
+    @Test
+    fun `get events invalid limit 0`() {
+        val car = Car(123, "John Doe", ArrayList(), ArrayList(), "Trabant", "Bakelite car", "")
+        val route = Route(id = 6782, time = ZonedDateTime.now(), car = car)
+        val position1 = Position(1, route, 9f, 2f, 2f, ZonedDateTime.now(), 9f, 2f, 2f)
+        val position2 = Position(2, route, 2f, 9f, 8f, ZonedDateTime.now(), 4f, 1f, 7f)
+        val positions = listOf(position1, position2)
+        val principal = BasicUserPrincipal("John Doe")
 
-        val positions = JsonParser().parse(result.body).asJsonArray
-        assertEquals(0, positions.size())
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
+        val pageableCaptor = argumentCaptor<Pageable>()
+        doReturn(PageImpl(positions)).`when`(positionRepository).findAllByRouteId(com.nhaarman.mockitokotlin2.eq(route.id), pageableCaptor.capture())
+
+        val jsonResponse = positionController.getPositions(principal, request, response, route.id, 2, 0)
+
+        assertEquals(2, pageableCaptor.firstValue.pageNumber)
+        assertEquals(1, pageableCaptor.firstValue.pageSize)
+        assertEquals(Position.gson.toJson(positions), jsonResponse)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
     }
 }

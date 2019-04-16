@@ -1,247 +1,588 @@
 package com.example.tomas.carsecurity.controller
 
+
+import com.example.tomas.carsecurity.model.Car
+import com.example.tomas.carsecurity.model.Position
+import com.example.tomas.carsecurity.model.Route
+import com.example.tomas.carsecurity.model.dto.RouteUpdate
+import com.example.tomas.carsecurity.repository.CarRepository
+import com.example.tomas.carsecurity.repository.DeleteUtil
+import com.example.tomas.carsecurity.repository.PositionRepository
 import com.example.tomas.carsecurity.repository.RouteRepository
-import com.google.gson.JsonParser
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
-import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.util.LinkedMultiValueMap
+import com.nhaarman.mockitokotlin2.argumentCaptor
+import io.grpc.internal.JsonParser
+import org.apache.http.auth.BasicUserPrincipal
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import org.mockito.ArgumentMatchers
+import org.mockito.Mock
+import org.mockito.Mockito.*
+import org.mockito.MockitoAnnotations
+import org.mockito.internal.verification.Times
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpServletResponse
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.util.*
+import javax.servlet.http.HttpServletResponse
 
+class RouteControllerTest {
 
-class RouteControllerTest : BaseControllerTest() {
-
-    private val logger = LoggerFactory.getLogger(RouteControllerTest::class.java)
-
-    @Autowired
+    @Mock
     private lateinit var routeRepository: RouteRepository
+    @Mock
+    private lateinit var positionRepository: PositionRepository
+    @Mock
+    private lateinit var carRepository: CarRepository
+    @Mock
+    private lateinit var deleteUtil: DeleteUtil
 
-    @Test
-    fun `create new route success`() {
 
-        logger.info("Testing creating of new route")
+    private lateinit var routeController: RouteController
 
-        val request = LinkedMultiValueMap<String, String>()
-        request.add("car_id", "1")
-        val url = getUrl(ROUTE_MAPPING)
-        logger.debug("Request url: $url")
-        logger.debug("Request params: $request")
+    private lateinit var request: MockHttpServletRequest
+    private lateinit var response: MockHttpServletResponse
 
-        val result = testTemplate.postForEntity(url, request, String::class.java)
+    private val positions = ArrayList<Position>()
+    private val car = Car(id = 48, username = "Emanuel")
+    private val route = Route(id = 823, time = ZonedDateTime.now(), car = car, positions = positions)
 
-        // Testing
-        assertEquals(200, result.statusCodeValue)
 
-        val regex = Regex("\\{\"route_id\":\"(\\d+)\"}")
-        assertTrue(result.body!!.contains(regex))
+    @Before
+    fun init() {
+        MockitoAnnotations.initMocks(this)
+        request = MockHttpServletRequest()
+        response = MockHttpServletResponse()
 
-        logger.debug("Removing created route")
-        val matchResult = regex.find(result.body!!)
-        val id = matchResult!!.groupValues[1].toLong()
+        routeController = RouteController(routeRepository, positionRepository, carRepository, deleteUtil)
 
-        assertNotEquals(0, id)
-        routeRepository.deleteById(id)
+        val positionTime1 = ZonedDateTime.of(1111, 11, 11, 11, 11, 11, 0, ZoneOffset.UTC)
+        val positionTime2 = ZonedDateTime.of(2222, 2, 22, 22, 22, 22, 0, ZoneOffset.UTC)
+        val positionTime3 = ZonedDateTime.of(3333, 3, 3, 3, 33, 33, 0, ZoneOffset.UTC)
+
+        positions.add(Position(1, route, 1f, 2f, 3f, positionTime1, 4f, 5f, 6f))
+        positions.add(Position(2, route, 7f, 8f, 9f, positionTime2, 10f, 11f, 12f))
+        positions.add(Position(3, route, 13f, 14f, 15f, positionTime3, 16f, 17f, 18f))
     }
 
     @Test
-    fun `create new route invalid car id`() {
+    fun `create route success`() {
 
-        logger.info("Testing creating of new route with invalid car id")
+        val time = ZonedDateTime.of(1234, 5, 6, 7, 8, 9, 0, ZoneOffset.UTC)
+        val principal = BasicUserPrincipal("Emanuel")
 
-        val request = LinkedMultiValueMap<String, String>()
-        request.add("car_id", "111")
-        val url = getUrl(ROUTE_MAPPING)
-        logger.debug("Request url: $url")
-        logger.debug("Request params: $request")
+        val routeCaptor = argumentCaptor<Route>()
+        doReturn(Optional.of(car)).`when`(carRepository).findById(car.id)
+        doReturn(route).`when`(routeRepository).save(routeCaptor.capture())
 
-        val result = testTemplate.postForEntity(url, request, String::class.java)
+        val jsonResponse = routeController.createRoute(principal, request, response, car.id, time.toEpochSecond() * 1000)
 
-        // Testing
-        assertEquals(400, result.statusCodeValue)
-        assertNull(result.body)
+        assertEquals(time, routeCaptor.firstValue.time)
+        assertEquals(car, routeCaptor.firstValue.car)
+        assertTrue(routeCaptor.firstValue.positions.isEmpty())
+
+        val mapResult = JsonParser.parse(jsonResponse) as Map<*, *>
+        assertTrue(mapResult.containsKey("route_id"))
+        assertEquals("${route.id}", mapResult["route_id"])
+        assertEquals(HttpServletResponse.SC_CREATED, response.status)
     }
 
     @Test
-    fun `get route success`() {
+    fun `create route invalid car`() {
 
-        logger.info("Testing get of route")
+        val principal = BasicUserPrincipal("Emanuel")
+        val carOptional: Optional<Car> = Optional.empty()
 
-        val request = HashMap<String, String>()
-        request["route_id"] = "1"
-        val url = addParams(getUrl(ROUTE_MAPPING), request)
-        logger.debug("Request url: $url")
+        doReturn(carOptional).`when`(carRepository).findById(car.id)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
+        val jsonResponse = routeController.createRoute(principal, request, response, car.id, 1000L)
 
-        // Testing
-        assertEquals(200, result.statusCodeValue)
-
-        val route = JsonParser().parse(result.body).asJsonObject
-
-        assertEquals("0.0", route.get("length").asString)
-        assertEquals("1", route.get("car_id").asString)
-        assertEquals("2", route.get("start_position_id").asString)
-        assertEquals("6", route.get("end_position_id").asString)
-        assertEquals("car 1", route.get("note").asString)
+        verify(routeRepository, Times(0)).save(ArgumentMatchers.any())
+        assertTrue((JsonParser.parse(jsonResponse) as Map<*, *>).containsKey("error"))
+        assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.status)
     }
 
     @Test
-    fun `get route without positions`() {
+    fun `create route null principal`() {
 
-        logger.info("Testing get of route without position")
+        val principal = mock(UsernamePasswordAuthenticationToken::class.java)
 
-        val request = HashMap<String, String>()
-        request["route_id"] = "5"
-        val url = addParams(getUrl(ROUTE_MAPPING), request)
-        logger.debug("Request url: $url")
+        doReturn(null).`when`(principal).name
+        doReturn(Optional.of(car)).`when`(carRepository).findById(car.id)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
+        val jsonResponse = routeController.createRoute(principal, request, response, car.id, 1000L)
 
-        // Testing
-        assertEquals(200, result.statusCodeValue)
-
-        val route = JsonParser().parse(result.body).asJsonObject
-
-        assertEquals("0.0", route.get("length").asString)
-        assertEquals("2", route.get("car_id").asString)
-        assertFalse(route.has("start_position_id"))
-        assertFalse(route.has("end_position_id"))
-        assertEquals("car 5", route.get("note").asString)
+        verify(routeRepository, Times(0)).save(ArgumentMatchers.any())
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
 
     @Test
-    fun `get route invalid route id`() {
+    fun `create route principal not car owner`() {
 
-        logger.info("Testing get of route with invalid id")
+        val principal = BasicUserPrincipal("Steel")
 
-        val request = HashMap<String, String>()
-        request["route_id"] = "111"
-        val url = addParams(getUrl(ROUTE_MAPPING), request)
-        logger.debug("Request url: $url")
+        doReturn(Optional.of(car)).`when`(carRepository).findById(car.id)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
+        val jsonResponse = routeController.createRoute(principal, request, response, car.id, 1000L)
 
-        // Testing
-        assertEquals(400, result.statusCodeValue)
-        assertNull(result.body)
+        verify(routeRepository, Times(0)).save(ArgumentMatchers.any())
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
 
     @Test
-    fun `get routes success`() {
+    fun `update routes note success`() {
 
-        logger.info("Testing get of routes")
+        val principal = BasicUserPrincipal("Emanuel")
+        val routeUpdate = RouteUpdate(route.id, "Cool note.")
 
-        val request = HashMap<String, String>()
-        request["car_id"] = "1"
-        val url = addParams(getUrl(ROUTE_MAPPING), request)
-        logger.debug("Request url: $url")
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
+        val jsonResponse = routeController.updateRoutesNote(principal, request, response, routeUpdate)
 
-        // Testing
-        assertEquals(200, result.statusCodeValue)
+        val routeCaptor = argumentCaptor<Route>()
+        verify(routeRepository).save(routeCaptor.capture())
 
-        val routes = JsonParser().parse(result.body).asJsonArray
-        assertEquals(3, routes.size())
+        assertEquals(route.id, routeCaptor.firstValue.id)
+        assertEquals(route.car, routeCaptor.firstValue.car)
+        assertEquals(route.time, routeCaptor.firstValue.time)
+        assertEquals("Cool note.", routeCaptor.firstValue.note)
 
-        val expectedIds = arrayListOf(1, 2, 4)
-        for (route in routes) {
-            val id = route.asJsonObject.get("id").asInt
-            assertTrue(expectedIds.contains(id))
-            expectedIds.remove(id)
-        }
-
-        assertTrue(expectedIds.isEmpty())
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
     }
 
     @Test
-    fun `get routes with pages`() {
+    fun `update routes note invalid route id`() {
 
-        logger.info("Testing get of routes with pages")
+        val principal = BasicUserPrincipal("Emanuel")
+        val routeUpdate = RouteUpdate(5, "Cool note.")
 
-        val request = HashMap<String, String>()
-        request["car_id"] = "1"
-        request["page"] = "0"
-        request["limit"] = "2"
-        val url = addParams(getUrl(ROUTE_MAPPING), request)
-        logger.debug("Request url: $url")
+        val routeOptional: Optional<Route> = Optional.empty()
+        doReturn(routeOptional).`when`(routeRepository).findById(route.id)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
+        val jsonResponse = routeController.updateRoutesNote(principal, request, response, routeUpdate)
 
-        // Testing
-        assertEquals(200, result.statusCodeValue)
-
-        val routes = JsonParser().parse(result.body).asJsonArray
-        assertEquals(2, routes.size())
-
-        val expectedIds = arrayListOf(1, 2)
-        for (route in routes) {
-            val id = route.asJsonObject.get("id").asInt
-            assertTrue(expectedIds.contains(id))
-            expectedIds.remove(id)
-        }
-
-        assertTrue(expectedIds.isEmpty())
+        verify(routeRepository, Times(0)).save(ArgumentMatchers.any())
+        assertTrue((JsonParser.parse(jsonResponse) as Map<*, *>).containsKey("error"))
+        assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.status)
     }
 
     @Test
-    fun `get routes with pages of size 1`() {
+    fun `update routes note null principal`() {
 
-        logger.info("Testing get of routes with pages of size 1")
+        val principal = mock(UsernamePasswordAuthenticationToken::class.java)
+        val routeUpdate = RouteUpdate(route.id, "Cool note.")
 
-        val request = HashMap<String, String>()
-        request["car_id"] = "1"
-        request["page"] = "2"
-        request["limit"] = "1"
-        val url = addParams(getUrl(ROUTE_MAPPING), request)
-        logger.debug("Request url: $url")
+        doReturn(null).`when`(principal).name
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
+        val jsonResponse = routeController.updateRoutesNote(principal, request, response, routeUpdate)
 
-        // Testing
-        assertEquals(200, result.statusCodeValue)
-
-        val routes = JsonParser().parse(result.body).asJsonArray
-        assertEquals(1, routes.size())
-        assertEquals(4, routes[0].asJsonObject.get("id").asInt)
+        verify(routeRepository, Times(0)).save(ArgumentMatchers.any())
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
 
     @Test
-    fun `get routes with pages of size 0`() {
+    fun `update routes note not owner of route`() {
 
-        logger.info("Testing get of routes with pages of size 0")
+        val principal = BasicUserPrincipal("František")
+        val routeUpdate = RouteUpdate(route.id, "Cool note.")
 
-        val request = HashMap<String, String>()
-        request["car_id"] = "1"
-        request["page"] = "0"
-        request["limit"] = "0"
-        val url = addParams(getUrl(ROUTE_MAPPING), request)
-        logger.debug("Request url: $url")
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
+        val jsonResponse = routeController.updateRoutesNote(principal, request, response, routeUpdate)
 
-        // Testing
-        assertEquals(200, result.statusCodeValue)
-        val routes = JsonParser().parse(result.body).asJsonArray
-        assertEquals(1, routes.size())
+        verify(routeRepository, Times(0)).save(ArgumentMatchers.any())
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
 
     @Test
-    fun `get routes of car without routes`() {
+    fun `delete route by id success`() {
 
-        logger.info("Testing get of routes of car without routes")
+        val principal = BasicUserPrincipal("Emanuel")
 
-        val request = HashMap<String, String>()
-        request["car_id"] = "3"
-        val url = addParams(getUrl(ROUTE_MAPPING), request)
-        logger.debug("Request url: $url")
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
 
-        val result = testTemplate.getForEntity(url, String::class.java)
+        val jsonResponse = routeController.deleteRouteById(principal, request, response, route.id)
 
-        // Testing
-        assertEquals(200, result.statusCodeValue)
+        val routeCaptor = argumentCaptor<List<Route>>()
+        verify(deleteUtil).deleteRoutes(routeCaptor.capture())
+        assertEquals(1, routeCaptor.firstValue.size)
+        assertEquals(route, routeCaptor.firstValue.first())
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
+    }
 
-        val routes = JsonParser().parse(result.body).asJsonArray
-        assertEquals(0, routes.size())
+    @Test
+    fun `delete route by id invalid route id`() {
+
+        val principal = BasicUserPrincipal("Emanuel")
+        val routeOptional: Optional<Route> = Optional.empty()
+
+        doReturn(routeOptional).`when`(routeRepository).findById(route.id)
+
+        val jsonResponse = routeController.deleteRouteById(principal, request, response, route.id)
+
+        verify(deleteUtil, Times(0)).deleteRoutes(com.nhaarman.mockitokotlin2.any())
+        assertTrue((JsonParser.parse(jsonResponse) as Map<*, *>).containsKey("error"))
+        assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.status)
+    }
+
+    @Test
+    fun `delete route by id null principal`() {
+
+        val principal = mock(UsernamePasswordAuthenticationToken::class.java)
+
+        doReturn(null).`when`(principal).name
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
+
+        val jsonResponse = routeController.deleteRouteById(principal, request, response, route.id)
+
+        verify(deleteUtil, Times(0)).deleteRoutes(com.nhaarman.mockitokotlin2.any())
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
+    }
+
+    @Test
+    fun `delete route by id not owner of route`() {
+
+        val principal = BasicUserPrincipal("Paul")
+
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
+
+        val jsonResponse = routeController.deleteRouteById(principal, request, response, route.id)
+
+        verify(deleteUtil, Times(0)).deleteRoutes(com.nhaarman.mockitokotlin2.any())
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
+    }
+
+    @Test
+    fun `get routes of log user success`() {
+        val principal = BasicUserPrincipal("Paul")
+        val route2 = Route(id = 32, car = car, time = ZonedDateTime.now())
+        val routes = listOf(route, route2)
+
+        val pageableCaptor = argumentCaptor<Pageable>()
+        doReturn(PageImpl(routes)).`when`(routeRepository).findAllByCar_UsernameOrderByTimeDesc(
+                com.nhaarman.mockitokotlin2.eq("Paul"), pageableCaptor.capture())
+
+        doReturn(Optional.of(1f)).`when`(positionRepository).avgSpeedOfRoute(route.id)
+        doReturn(Optional.of(2f)).`when`(positionRepository).sumDistanceOfRoute(route.id)
+        doReturn(Optional.of(3)).`when`(positionRepository).travelTimeOfRoute(route.id)
+        doReturn(Optional.of(4f)).`when`(positionRepository).avgSpeedOfRoute(route2.id)
+        doReturn(Optional.of(5f)).`when`(positionRepository).sumDistanceOfRoute(route2.id)
+        doReturn(Optional.of(6)).`when`(positionRepository).travelTimeOfRoute(route2.id)
+
+        val jsonResponse = routeController.getRoutesOfLogUser(principal, request, response, 6, 99)
+
+        assertEquals(99, pageableCaptor.firstValue.pageSize)
+        assertEquals(6, pageableCaptor.firstValue.pageNumber)
+
+        val jsonExpected = Route.gson.toJson(listOf(
+                route.copy(avgSpeed = 1f, length = 2f, secondsOfTravel = 3),
+                route2.copy(avgSpeed = 4f, length = 5f, secondsOfTravel = 6)))
+
+        assertEquals(jsonExpected, jsonResponse)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
+    }
+
+    @Test
+    fun `get routes of log user not update statistics`() {
+        val principal = BasicUserPrincipal("Paul")
+        val route2 = Route(id = 32, car = car, time = ZonedDateTime.now())
+        val routes = listOf(route, route2)
+
+        val pageableCaptor = argumentCaptor<Pageable>()
+        doReturn(PageImpl(routes)).`when`(routeRepository).findAllByCar_UsernameOrderByTimeDesc(
+                com.nhaarman.mockitokotlin2.eq("Paul"), pageableCaptor.capture())
+
+        val floatOptional: Optional<Float> = Optional.empty()
+        doReturn(floatOptional).`when`(positionRepository).avgSpeedOfRoute(com.nhaarman.mockitokotlin2.any())
+
+        val jsonResponse = routeController.getRoutesOfLogUser(principal, request, response, 6, 99)
+
+        assertEquals(99, pageableCaptor.firstValue.pageSize)
+        assertEquals(6, pageableCaptor.firstValue.pageNumber)
+
+        val jsonExpected = Route.gson.toJson(routes)
+
+        assertEquals(jsonExpected, jsonResponse)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
+    }
+
+    @Test
+    fun `get routes of log user null principal`() {
+        val principal = mock(UsernamePasswordAuthenticationToken::class.java)
+        doReturn(null).`when`(principal).name
+
+        val jsonResponse = routeController.getRoutesOfLogUser(principal, request, response, 6, 99)
+
+        verify(routeRepository, Times(0)).findAllByCar_UsernameOrderByTimeDesc(com.nhaarman.mockitokotlin2.any(), com.nhaarman.mockitokotlin2.any())
+        assertEquals("", jsonResponse)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
+    }
+
+    @Test
+    fun `get routes of log user invalid limit -3`() {
+        val principal = BasicUserPrincipal("Paul")
+        val route2 = Route(id = 32, car = car, time = ZonedDateTime.now())
+        val routes = listOf(route, route2)
+
+        val pageableCaptor = argumentCaptor<Pageable>()
+        doReturn(PageImpl(routes)).`when`(routeRepository).findAllByCar_UsernameOrderByTimeDesc(
+                com.nhaarman.mockitokotlin2.eq("Paul"), pageableCaptor.capture())
+
+        val floatOptional: Optional<Float> = Optional.empty()
+        doReturn(floatOptional).`when`(positionRepository).avgSpeedOfRoute(com.nhaarman.mockitokotlin2.any())
+
+        val jsonResponse = routeController.getRoutesOfLogUser(principal, request, response, 6, -3)
+
+        assertEquals(1, pageableCaptor.firstValue.pageSize)
+        assertEquals(6, pageableCaptor.firstValue.pageNumber)
+
+        val jsonExpected = Route.gson.toJson(routes)
+
+        assertEquals(jsonExpected, jsonResponse)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
+    }
+
+    @Test
+    fun `get routes of log user invalid limit 0`() {
+        val principal = BasicUserPrincipal("Paul")
+        val route2 = Route(id = 32, car = car, time = ZonedDateTime.now())
+        val routes = listOf(route, route2)
+
+        val pageableCaptor = argumentCaptor<Pageable>()
+        doReturn(PageImpl(routes)).`when`(routeRepository).findAllByCar_UsernameOrderByTimeDesc(
+                com.nhaarman.mockitokotlin2.eq("Paul"), pageableCaptor.capture())
+
+        val floatOptional: Optional<Float> = Optional.empty()
+        doReturn(floatOptional).`when`(positionRepository).avgSpeedOfRoute(com.nhaarman.mockitokotlin2.any())
+
+        val jsonResponse = routeController.getRoutesOfLogUser(principal, request, response, 6, 0)
+
+        assertEquals(1, pageableCaptor.firstValue.pageSize)
+        assertEquals(6, pageableCaptor.firstValue.pageNumber)
+
+        val jsonExpected = Route.gson.toJson(routes)
+
+        assertEquals(jsonExpected, jsonResponse)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
+    }
+
+    @Test
+    fun `get route by id success`() {
+        val principal = BasicUserPrincipal("Emanuel")
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
+        doReturn(Optional.of(1f)).`when`(positionRepository).avgSpeedOfRoute(route.id)
+        doReturn(Optional.of(2f)).`when`(positionRepository).sumDistanceOfRoute(route.id)
+        doReturn(Optional.of(3)).`when`(positionRepository).travelTimeOfRoute(route.id)
+
+        val jsonResult = routeController.getRouteById(principal, request, response, route.id)
+
+        val jsonExpected = Route.gson.toJson(route.copy(avgSpeed = 1f, length = 2f, secondsOfTravel = 3))
+        assertEquals(jsonExpected, jsonResult)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
+    }
+
+    @Test
+    fun `get route by id invalid route id`() {
+        val principal = BasicUserPrincipal("Emanuel")
+        val routeOptional: Optional<Route> = Optional.empty()
+        doReturn(routeOptional).`when`(routeRepository).findById(123456)
+
+        val jsonResult = routeController.getRouteById(principal, request, response, 123456)
+
+        assertTrue((JsonParser.parse(jsonResult) as Map<*, *>).containsKey("error"))
+        assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.status)
+    }
+
+    @Test
+    fun `get route by id null principal`() {
+        val principal = mock(UsernamePasswordAuthenticationToken::class.java)
+        doReturn(null).`when`(principal).name
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
+
+        val jsonResult = routeController.getRouteById(principal, request, response, route.id)
+
+        assertEquals("", jsonResult)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
+    }
+
+    @Test
+    fun `get route by id not owner of route`() {
+        val principal = BasicUserPrincipal("Aladin")
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
+
+        val jsonResult = routeController.getRouteById(principal, request, response, route.id)
+
+        assertEquals("", jsonResult)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
+    }
+
+    @Test
+    fun `get route by car id success`() {
+        val principal = BasicUserPrincipal("Emanuel")
+        doReturn(Optional.of(car)).`when`(carRepository).findById(car.id)
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
+        doReturn(Optional.of(1f)).`when`(positionRepository).avgSpeedOfRoute(route.id)
+        doReturn(Optional.of(2f)).`when`(positionRepository).sumDistanceOfRoute(route.id)
+        doReturn(Optional.of(3)).`when`(positionRepository).travelTimeOfRoute(route.id)
+
+        val pageableCaptor = argumentCaptor<Pageable>()
+        doReturn(PageImpl(listOf(route))).`when`(routeRepository).findAllByCar_IdOrderByTimeDesc(
+                com.nhaarman.mockitokotlin2.eq(car.id), pageableCaptor.capture())
+
+        val jsonResult = routeController.getRoutesByCarId(principal, request, response, car.id, 2, 29)
+
+        assertEquals(29, pageableCaptor.firstValue.pageSize)
+        assertEquals(2, pageableCaptor.firstValue.pageNumber)
+
+        val jsonExpected = Route.gson.toJson(listOf(route.copy(avgSpeed = 1f, length = 2f, secondsOfTravel = 3)))
+        assertEquals(jsonExpected, jsonResult)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
+    }
+
+    @Test
+    fun `get route by car id invalid page limit -23`() {
+        val principal = BasicUserPrincipal("Emanuel")
+        doReturn(Optional.of(car)).`when`(carRepository).findById(car.id)
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
+        doReturn(Optional.of(1f)).`when`(positionRepository).avgSpeedOfRoute(route.id)
+        doReturn(Optional.of(2f)).`when`(positionRepository).sumDistanceOfRoute(route.id)
+        doReturn(Optional.of(3)).`when`(positionRepository).travelTimeOfRoute(route.id)
+
+        val pageableCaptor = argumentCaptor<Pageable>()
+        doReturn(PageImpl(listOf(route))).`when`(routeRepository).findAllByCar_IdOrderByTimeDesc(
+                com.nhaarman.mockitokotlin2.eq(car.id), pageableCaptor.capture())
+
+        val jsonResult = routeController.getRoutesByCarId(principal, request, response, car.id, 2, -23)
+
+        assertEquals(1, pageableCaptor.firstValue.pageSize)
+        assertEquals(2, pageableCaptor.firstValue.pageNumber)
+
+        val jsonExpected = Route.gson.toJson(listOf(route.copy(avgSpeed = 1f, length = 2f, secondsOfTravel = 3)))
+        assertEquals(jsonExpected, jsonResult)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
+    }
+
+    @Test
+    fun `get route by car id invalid page limit 0`() {
+        val principal = BasicUserPrincipal("Emanuel")
+        doReturn(Optional.of(car)).`when`(carRepository).findById(car.id)
+        doReturn(Optional.of(route)).`when`(routeRepository).findById(route.id)
+        doReturn(Optional.of(1f)).`when`(positionRepository).avgSpeedOfRoute(route.id)
+        doReturn(Optional.of(2f)).`when`(positionRepository).sumDistanceOfRoute(route.id)
+        doReturn(Optional.of(3)).`when`(positionRepository).travelTimeOfRoute(route.id)
+
+        val pageableCaptor = argumentCaptor<Pageable>()
+        doReturn(PageImpl(listOf(route))).`when`(routeRepository).findAllByCar_IdOrderByTimeDesc(
+                com.nhaarman.mockitokotlin2.eq(car.id), pageableCaptor.capture())
+
+        val jsonResult = routeController.getRoutesByCarId(principal, request, response, car.id, 2, 0)
+
+        assertEquals(1, pageableCaptor.firstValue.pageSize)
+        assertEquals(2, pageableCaptor.firstValue.pageNumber)
+
+        val jsonExpected = Route.gson.toJson(listOf(route.copy(avgSpeed = 1f, length = 2f, secondsOfTravel = 3)))
+        assertEquals(jsonExpected, jsonResult)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
+    }
+
+    @Test
+    fun `get route by car id invalid car id`() {
+        val principal = BasicUserPrincipal("Emanuel")
+        val carOptional: Optional<Car> = Optional.empty()
+        doReturn(carOptional).`when`(carRepository).findById(5345)
+
+        val jsonResult = routeController.getRoutesByCarId(principal, request, response, 5345, 2, 34)
+
+        verify(routeRepository, Times(0)).findAllByCar_UsernameOrderByTimeDesc(
+                com.nhaarman.mockitokotlin2.any(), com.nhaarman.mockitokotlin2.any())
+        assertTrue((JsonParser.parse(jsonResult) as Map<*, *>).containsKey("error"))
+        assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.status)
+    }
+
+    @Test
+    fun `get route by car id null principal`() {
+        val principal = mock(UsernamePasswordAuthenticationToken::class.java)
+        doReturn(null).`when`(principal).name
+        doReturn(Optional.of(car)).`when`(carRepository).findById(car.id)
+
+        val jsonResult = routeController.getRoutesByCarId(principal, request, response, car.id, 2, 12)
+
+        verify(routeRepository, Times(0)).findAllByCar_UsernameOrderByTimeDesc(
+                com.nhaarman.mockitokotlin2.any(), com.nhaarman.mockitokotlin2.any())
+        assertEquals("", jsonResult)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
+    }
+
+    @Test
+    fun `get route by car id not owner of car`() {
+        val principal = BasicUserPrincipal("Zebra")
+        doReturn(Optional.of(car)).`when`(carRepository).findById(car.id)
+
+        val jsonResult = routeController.getRoutesByCarId(principal, request, response, car.id, 2, 12)
+
+        verify(routeRepository, Times(0)).findAllByCar_UsernameOrderByTimeDesc(
+                com.nhaarman.mockitokotlin2.any(), com.nhaarman.mockitokotlin2.any())
+        assertEquals("", jsonResult)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
+    }
+
+    @Test
+    fun `count routes of log user success`() {
+        val principal = BasicUserPrincipal("David")
+        doReturn(32L).`when`(routeRepository).countByCar_Username("David")
+
+        val jsonResult = routeController.countRoutesOfLogUser(principal, request, response)
+
+        assertEquals("{\"count\":\"32\"}", jsonResult)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
+    }
+
+    @Test
+    fun `count routes of log user null principal`() {
+        val principal = mock(UsernamePasswordAuthenticationToken::class.java)
+        doReturn(null).`when`(principal).name
+
+        val jsonResult = routeController.countRoutesOfLogUser(principal, request, response)
+
+        verify(routeRepository, Times(0)).countByCar_Username(com.nhaarman.mockitokotlin2.any())
+        assertEquals("", jsonResult)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
+    }
+
+    @Test
+    fun `count routes by car success`() {
+        val principal = BasicUserPrincipal("Harry")
+        doReturn(0L).`when`(routeRepository).countByCar_Id(34)
+
+        val jsonResult = routeController.countRoutesByCar(principal, request, response, 34)
+
+        assertEquals("{\"count\":\"0\"}", jsonResult)
+        assertEquals(HttpServletResponse.SC_OK, response.status)
+    }
+
+    @Test
+    fun `count routes by car null principal`() {
+        val principal = mock(UsernamePasswordAuthenticationToken::class.java)
+        doReturn(null).`when`(principal).name
+
+        val jsonResult = routeController.countRoutesOfLogUser(principal, request, response)
+
+        verify(routeRepository, Times(0)).countByCar_Id(com.nhaarman.mockitokotlin2.any())
+        assertEquals("", jsonResult)
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
 }
