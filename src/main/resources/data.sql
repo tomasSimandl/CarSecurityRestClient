@@ -15,15 +15,15 @@ INSERT INTO car (id, username, name, note, firebase_token) VALUES (1, "user1", "
 
 INSERT INTO route (id, avg_speed, length, seconds_of_travel, car_id, time, note) VALUES (1, -1, -1, -1, 1, "2019-01-02T10:15:30", "car 1");
 INSERT INTO route (id, avg_speed, length, seconds_of_travel, car_id, time, note) VALUES (2, -1, -1, -1, 1, "2019-01-02T10:15:31", "car 1");
-INSERT INTO route (id, avg_speed, length, seconds_of_travel, car_id, time, note) VALUES (3, -1, -1, -1, 1, "2019-01-02T10:15:33", "car 1");
-INSERT INTO route (id, avg_speed, length, seconds_of_travel, car_id, time, note) VALUES (4, -1, -1, -1, 1, "2019-01-02T10:15:35", "car 1");
-INSERT INTO route (id, avg_speed, length, seconds_of_travel, car_id, time, note) VALUES (5, -1, -1, -1, 1, "2019-01-02T10:15:36", "car 1");
+INSERT INTO route (id, avg_speed, length, seconds_of_travel, car_id, time, note) VALUES (3, -1, -1, -1, 1, "2019-01-02T10:15:32", "car 1");
+INSERT INTO route (id, avg_speed, length, seconds_of_travel, car_id, time, note) VALUES (4, -1, -1, -1, 1, "2019-01-02T10:15:33", "car 1");
+INSERT INTO route (id, avg_speed, length, seconds_of_travel, car_id, time, note) VALUES (5, -1, -1, -1, 1, "2019-01-02T10:15:34", "car 1");
 
 
 INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (1, "jedna", "2019-01-02T10:15:30", 1, 1);
 INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (2, "dva", "2019-01-02T10:15:31", 1, 1);
-INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (3, "ctyri", "2019-01-02T10:15:33", 1, 2);
-INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (4, "sest", "2019-01-12T10:15:30", 1, 2);
+INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (3, "tri", "2019-01-02T10:15:32", 1, 2);
+INSERT INTO event (id, note, time, car_id, event_type_id) VALUES (4, "ctiri", "2019-01-02T10:15:33", 1, 2);
 
 INSERT INTO `position` VALUES (1,0.1,1.11, 0.1,2.22,3.33,4.44,'2019-01-02 10:15:31',NULL),
                               (2,0.1,2.22, 0.2,3.33,4.44,5.55,'2019-01-02 10:15:32',1),
