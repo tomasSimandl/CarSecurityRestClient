@@ -543,12 +543,11 @@ class RouteControllerTest {
     @Test
     fun `count routes of log user success`() {
         val principal = BasicUserPrincipal("David")
-        val list = listOf<Route>()
-        doReturn(PageImpl(list)).`when`(routeRepository).findDistinctByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc("David", Pageable.unpaged())
+        doReturn(32L).`when`(routeRepository).countUsersRoutes("David")
 
         val jsonResult = routeController.countRoutesOfLogUser(principal, request, response)
 
-        assertEquals("{\"count\":\"0\"}", jsonResult)
+        assertEquals("{\"count\":\"32\"}", jsonResult)
         assertEquals(HttpServletResponse.SC_OK, response.status)
     }
 
@@ -567,12 +566,11 @@ class RouteControllerTest {
     @Test
     fun `count routes by car success`() {
         val principal = BasicUserPrincipal("Harry")
-        val list = listOf(route)
-        doReturn(PageImpl(list)).`when`(routeRepository).findDistinctByCar_IdAndPositionsIsNotNullOrderByTimeDesc(34, Pageable.unpaged())
+        doReturn(0L).`when`(routeRepository).countCarsRoutes(34)
 
         val jsonResult = routeController.countRoutesByCar(principal, request, response, 34)
 
-        assertEquals("{\"count\":\"1\"}", jsonResult)
+        assertEquals("{\"count\":\"0\"}", jsonResult)
         assertEquals(HttpServletResponse.SC_OK, response.status)
     }
 

@@ -49,7 +49,7 @@ data class Car(
 
             jsonCar.addProperty("id", car.id)
             jsonCar.addProperty("username", car.username)
-            jsonCar.addProperty("routes", car.routes.size)
+            jsonCar.addProperty("routes", car.routes.count { it.positions.isNotEmpty() })
             jsonCar.addProperty("events", car.events.size)
             jsonCar.addProperty("name", car.name)
             jsonCar.addProperty("note", car.note)
