@@ -543,7 +543,7 @@ class RouteControllerTest {
     @Test
     fun `count routes of log user success`() {
         val principal = BasicUserPrincipal("David")
-        doReturn(32L).`when`(routeRepository).countDistinctByCar_UsernameAndPositionsIsNotNull("David")
+        doReturn(32L).`when`(routeRepository).countUsersRoutes("David")
 
         val jsonResult = routeController.countRoutesOfLogUser(principal, request, response)
 
@@ -558,7 +558,7 @@ class RouteControllerTest {
 
         val jsonResult = routeController.countRoutesOfLogUser(principal, request, response)
 
-        verify(routeRepository, Times(0)).countDistinctByCar_UsernameAndPositionsIsNotNull(com.nhaarman.mockitokotlin2.any())
+        verify(routeRepository, Times(0)).countUsersRoutes(com.nhaarman.mockitokotlin2.any())
         assertEquals("", jsonResult)
         assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
@@ -566,7 +566,7 @@ class RouteControllerTest {
     @Test
     fun `count routes by car success`() {
         val principal = BasicUserPrincipal("Harry")
-        doReturn(0L).`when`(routeRepository).countDistinctByCar_IdAndPositionsIsNotNull(34)
+        doReturn(0L).`when`(routeRepository).countCarsRoutes(34)
 
         val jsonResult = routeController.countRoutesByCar(principal, request, response, 34)
 
@@ -581,7 +581,7 @@ class RouteControllerTest {
 
         val jsonResult = routeController.countRoutesOfLogUser(principal, request, response)
 
-        verify(routeRepository, Times(0)).countDistinctByCar_IdAndPositionsIsNotNull(com.nhaarman.mockitokotlin2.any())
+        verify(routeRepository, Times(0)).countCarsRoutes(com.nhaarman.mockitokotlin2.any())
         assertEquals("", jsonResult)
         assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }

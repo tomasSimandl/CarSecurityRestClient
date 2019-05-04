@@ -296,7 +296,7 @@ class RouteController(
             return ""
         }
 
-        val routes = routeRepository.countDistinctByCar_UsernameAndPositionsIsNotNull(principal.name)
+        val routes = routeRepository.countUsersRoutes(principal.name)
         return createJsonSingle("count", routes.toString())
     }
 
@@ -325,7 +325,7 @@ class RouteController(
             return ""
         }
 
-        val routes = routeRepository.countDistinctByCar_IdAndPositionsIsNotNull(carId)
+        val routes = routeRepository.countCarsRoutes(carId)
         return createJsonSingle("count", routes.toString())
     }
 
