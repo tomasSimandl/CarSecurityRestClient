@@ -297,7 +297,7 @@ class RouteController(
             return ""
         }
 
-        val routes = routeRepository.findDistinctByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(principal.name, Pageable.unpaged()).size
+        val routes = routeRepository.findDistinctByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(principal.name, Pageable.unpaged()).totalElements
         return createJsonSingle("count", routes.toString())
     }
 
@@ -326,7 +326,7 @@ class RouteController(
             return ""
         }
 
-        val routes = routeRepository.findDistinctByCar_IdAndPositionsIsNotNullOrderByTimeDesc(carId, Pageable.unpaged()).size
+        val routes = routeRepository.findDistinctByCar_IdAndPositionsIsNotNullOrderByTimeDesc(carId, Pageable.unpaged()).totalElements
         return createJsonSingle("count", routes.toString())
     }
 
