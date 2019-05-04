@@ -19,7 +19,7 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @param pageable specification of which page of which size will be result.
      * @return page of found routes.
      */
-    fun findAllByCar_IdOrderByTimeDesc(carId: Long, pageable: Pageable): Page<Route>
+    fun findAllByCar_IdAndPositionsExistsOrderByTimeDesc(carId: Long, pageable: Pageable): Page<Route>
 
     /**
      * Method return page of routes which were created with users cars.
@@ -29,7 +29,7 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @param pageable specification of which page of which size will be result.
      * @return page of found routes.
      */
-    fun findAllByCar_UsernameOrderByTimeDesc(username: String, pageable: Pageable): Page<Route>
+    fun findAllByCar_UsernameAndPositionsExistsOrderByTimeDesc(username: String, pageable: Pageable): Page<Route>
 
     /**
      * Method return number of routes which were created by cars which own [username].
@@ -37,7 +37,7 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @param username of which routes will be calculated.
      * @return number of routes.
      */
-    fun countByCar_Username(username: String): Long
+    fun countByCar_UsernameAndPositionsExists(username: String): Long
 
     /**
      * Method return number of routes which were created by specific car.
@@ -45,7 +45,7 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @param carId is identification of car of which number of routes is requested.
      * @return number of cars routes.
      */
-    fun countByCar_Id(carId: Long): Long
+    fun countByCar_IdAndPositionsExists(carId: Long): Long
 
     /**
      * Method return list of routes which were created by any car in [cars].
@@ -53,5 +53,5 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @param cars of which routes will be returned.
      * @return list of found routes.
      */
-    fun findAllByCarIn(cars: List<Car>): List<Route>
+    fun findAllByCarInAndPositionsExists(cars: List<Car>): List<Route>
 }
