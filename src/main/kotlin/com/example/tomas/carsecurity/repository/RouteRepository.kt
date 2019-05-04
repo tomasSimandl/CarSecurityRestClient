@@ -48,10 +48,7 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @param username of which routes will be calculated.
      * @return number of routes.
      */
-//    @Query("SELECT COUNT( DISTINCT r.id) FROM route r " +
-//            "INNER JOIN car c ON r.car_id = c.id " +
-//            "INNER JOIN position p ON r.id = p.route_id " +
-//            "WHERE c.username = ?1", nativeQuery = true)
+    @Query("SELECT COUNT( DISTINCT r.id) FROM route r INNER JOIN car c ON r.car_id = c.id INNER JOIN position p ON r.id = p.route_id WHERE c.username = ?1", nativeQuery = true)
     fun countDistinctByCar_UsernameAndPositionsIsNotNull(username: String): Long
 
     /**
@@ -60,9 +57,7 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @param carId is identification of car of which number of routes is requested.
      * @return number of cars routes.
      */
-//    @Query("SELECT COUNT( DISTINCT r.id) FROM route r " +
-//            "INNER JOIN position p ON r.id = p.route_id " +
-//            "WHERE r.car_id = ?1 ", nativeQuery = true)
+    @Query("SELECT COUNT( DISTINCT r.id) FROM route r INNER JOIN position p ON r.id = p.route_id WHERE r.car_id = ?1", nativeQuery = true)
     fun countDistinctByCar_IdAndPositionsIsNotNull(carId: Long): Long
 
     /**
