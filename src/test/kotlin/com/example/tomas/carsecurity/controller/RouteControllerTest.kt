@@ -273,7 +273,7 @@ class RouteControllerTest {
         val routes = listOf(route, route2)
 
         val pageableCaptor = argumentCaptor<Pageable>()
-        doReturn(PageImpl(routes)).`when`(routeRepository).findAllByCar_UsernameAndPositionsExistsOrderByTimeDesc(
+        doReturn(PageImpl(routes)).`when`(routeRepository).findAllByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(
                 com.nhaarman.mockitokotlin2.eq("Paul"), pageableCaptor.capture())
 
         doReturn(Optional.of(1f)).`when`(positionRepository).avgSpeedOfRoute(route.id)
@@ -303,7 +303,7 @@ class RouteControllerTest {
         val routes = listOf(route, route2)
 
         val pageableCaptor = argumentCaptor<Pageable>()
-        doReturn(PageImpl(routes)).`when`(routeRepository).findAllByCar_UsernameAndPositionsExistsOrderByTimeDesc(
+        doReturn(PageImpl(routes)).`when`(routeRepository).findAllByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(
                 com.nhaarman.mockitokotlin2.eq("Paul"), pageableCaptor.capture())
 
         val floatOptional: Optional<Float> = Optional.empty()
@@ -327,7 +327,7 @@ class RouteControllerTest {
 
         val jsonResponse = routeController.getRoutesOfLogUser(principal, request, response, 6, 99)
 
-        verify(routeRepository, Times(0)).findAllByCar_UsernameAndPositionsExistsOrderByTimeDesc(com.nhaarman.mockitokotlin2.any(), com.nhaarman.mockitokotlin2.any())
+        verify(routeRepository, Times(0)).findAllByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(com.nhaarman.mockitokotlin2.any(), com.nhaarman.mockitokotlin2.any())
         assertEquals("", jsonResponse)
         assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
@@ -339,7 +339,7 @@ class RouteControllerTest {
         val routes = listOf(route, route2)
 
         val pageableCaptor = argumentCaptor<Pageable>()
-        doReturn(PageImpl(routes)).`when`(routeRepository).findAllByCar_UsernameAndPositionsExistsOrderByTimeDesc(
+        doReturn(PageImpl(routes)).`when`(routeRepository).findAllByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(
                 com.nhaarman.mockitokotlin2.eq("Paul"), pageableCaptor.capture())
 
         val floatOptional: Optional<Float> = Optional.empty()
@@ -363,7 +363,7 @@ class RouteControllerTest {
         val routes = listOf(route, route2)
 
         val pageableCaptor = argumentCaptor<Pageable>()
-        doReturn(PageImpl(routes)).`when`(routeRepository).findAllByCar_UsernameAndPositionsExistsOrderByTimeDesc(
+        doReturn(PageImpl(routes)).`when`(routeRepository).findAllByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(
                 com.nhaarman.mockitokotlin2.eq("Paul"), pageableCaptor.capture())
 
         val floatOptional: Optional<Float> = Optional.empty()
@@ -440,7 +440,7 @@ class RouteControllerTest {
         doReturn(Optional.of(3)).`when`(positionRepository).travelTimeOfRoute(route.id)
 
         val pageableCaptor = argumentCaptor<Pageable>()
-        doReturn(PageImpl(listOf(route))).`when`(routeRepository).findAllByCar_IdAndPositionsExistsOrderByTimeDesc(
+        doReturn(PageImpl(listOf(route))).`when`(routeRepository).findAllByCar_IdAndPositionsIsNotNullOrderByTimeDesc(
                 com.nhaarman.mockitokotlin2.eq(car.id), pageableCaptor.capture())
 
         val jsonResult = routeController.getRoutesByCarId(principal, request, response, car.id, 2, 29)
@@ -463,7 +463,7 @@ class RouteControllerTest {
         doReturn(Optional.of(3)).`when`(positionRepository).travelTimeOfRoute(route.id)
 
         val pageableCaptor = argumentCaptor<Pageable>()
-        doReturn(PageImpl(listOf(route))).`when`(routeRepository).findAllByCar_IdAndPositionsExistsOrderByTimeDesc(
+        doReturn(PageImpl(listOf(route))).`when`(routeRepository).findAllByCar_IdAndPositionsIsNotNullOrderByTimeDesc(
                 com.nhaarman.mockitokotlin2.eq(car.id), pageableCaptor.capture())
 
         val jsonResult = routeController.getRoutesByCarId(principal, request, response, car.id, 2, -23)
@@ -486,7 +486,7 @@ class RouteControllerTest {
         doReturn(Optional.of(3)).`when`(positionRepository).travelTimeOfRoute(route.id)
 
         val pageableCaptor = argumentCaptor<Pageable>()
-        doReturn(PageImpl(listOf(route))).`when`(routeRepository).findAllByCar_IdAndPositionsExistsOrderByTimeDesc(
+        doReturn(PageImpl(listOf(route))).`when`(routeRepository).findAllByCar_IdAndPositionsIsNotNullOrderByTimeDesc(
                 com.nhaarman.mockitokotlin2.eq(car.id), pageableCaptor.capture())
 
         val jsonResult = routeController.getRoutesByCarId(principal, request, response, car.id, 2, 0)
@@ -507,7 +507,7 @@ class RouteControllerTest {
 
         val jsonResult = routeController.getRoutesByCarId(principal, request, response, 5345, 2, 34)
 
-        verify(routeRepository, Times(0)).findAllByCar_UsernameAndPositionsExistsOrderByTimeDesc(
+        verify(routeRepository, Times(0)).findAllByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(
                 com.nhaarman.mockitokotlin2.any(), com.nhaarman.mockitokotlin2.any())
         assertTrue((JsonParser.parse(jsonResult) as Map<*, *>).containsKey("error"))
         assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.status)
@@ -521,7 +521,7 @@ class RouteControllerTest {
 
         val jsonResult = routeController.getRoutesByCarId(principal, request, response, car.id, 2, 12)
 
-        verify(routeRepository, Times(0)).findAllByCar_UsernameAndPositionsExistsOrderByTimeDesc(
+        verify(routeRepository, Times(0)).findAllByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(
                 com.nhaarman.mockitokotlin2.any(), com.nhaarman.mockitokotlin2.any())
         assertEquals("", jsonResult)
         assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
@@ -534,7 +534,7 @@ class RouteControllerTest {
 
         val jsonResult = routeController.getRoutesByCarId(principal, request, response, car.id, 2, 12)
 
-        verify(routeRepository, Times(0)).findAllByCar_UsernameAndPositionsExistsOrderByTimeDesc(
+        verify(routeRepository, Times(0)).findAllByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(
                 com.nhaarman.mockitokotlin2.any(), com.nhaarman.mockitokotlin2.any())
         assertEquals("", jsonResult)
         assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
@@ -543,7 +543,7 @@ class RouteControllerTest {
     @Test
     fun `count routes of log user success`() {
         val principal = BasicUserPrincipal("David")
-        doReturn(32L).`when`(routeRepository).countByCar_UsernameAndPositionsExists("David")
+        doReturn(32L).`when`(routeRepository).countByCar_UsernameAndPositionsIsNotNull("David")
 
         val jsonResult = routeController.countRoutesOfLogUser(principal, request, response)
 
@@ -558,7 +558,7 @@ class RouteControllerTest {
 
         val jsonResult = routeController.countRoutesOfLogUser(principal, request, response)
 
-        verify(routeRepository, Times(0)).countByCar_UsernameAndPositionsExists(com.nhaarman.mockitokotlin2.any())
+        verify(routeRepository, Times(0)).countByCar_UsernameAndPositionsIsNotNull(com.nhaarman.mockitokotlin2.any())
         assertEquals("", jsonResult)
         assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
@@ -566,7 +566,7 @@ class RouteControllerTest {
     @Test
     fun `count routes by car success`() {
         val principal = BasicUserPrincipal("Harry")
-        doReturn(0L).`when`(routeRepository).countByCar_IdAndPositionsExists(34)
+        doReturn(0L).`when`(routeRepository).countByCar_IdAndPositionsIsNotNull(34)
 
         val jsonResult = routeController.countRoutesByCar(principal, request, response, 34)
 
@@ -581,7 +581,7 @@ class RouteControllerTest {
 
         val jsonResult = routeController.countRoutesOfLogUser(principal, request, response)
 
-        verify(routeRepository, Times(0)).countByCar_IdAndPositionsExists(com.nhaarman.mockitokotlin2.any())
+        verify(routeRepository, Times(0)).countByCar_IdAndPositionsIsNotNull(com.nhaarman.mockitokotlin2.any())
         assertEquals("", jsonResult)
         assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.status)
     }
