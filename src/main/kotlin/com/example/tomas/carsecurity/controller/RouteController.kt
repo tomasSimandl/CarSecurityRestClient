@@ -189,7 +189,7 @@ class RouteController(
         }
 
         val validLimit = if (limit <= 0) 1 else limit
-        val routes = routeRepository.findAllByCar_UsernameOrderByTimeDesc(principal.name, PageRequest.of(page, validLimit))
+        val routes = routeRepository.findDistinctByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(principal.name, PageRequest.of(page, validLimit))
         updateRouteStatistics(routes.content)
         return Route.gson.toJson(routes.content)
     }
@@ -268,7 +268,7 @@ class RouteController(
         }
 
         val validLimit = if (limit <= 0) 1 else limit
-        val routes = routeRepository.findAllByCar_IdOrderByTimeDesc(carId, PageRequest.of(page, validLimit))
+        val routes = routeRepository.findDistinctByCar_IdAndPositionsIsNotNullOrderByTimeDesc(carId, PageRequest.of(page, validLimit))
         updateRouteStatistics(routes.content)
         return Route.gson.toJson(routes.content)
     }
@@ -296,7 +296,7 @@ class RouteController(
             return ""
         }
 
-        val routes = routeRepository.countByCar_Username(principal.name)
+        val routes = routeRepository.countDistinctByCar_UsernameAndPositionsIsNotNull(principal.name)
         return createJsonSingle("count", routes.toString())
     }
 
@@ -325,7 +325,7 @@ class RouteController(
             return ""
         }
 
-        val routes = routeRepository.countByCar_Id(carId)
+        val routes = routeRepository.countDistinctByCar_IdAndPositionsIsNotNull(carId)
         return createJsonSingle("count", routes.toString())
     }
 
