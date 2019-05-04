@@ -33,7 +33,7 @@ class DeleteUtil(
         val events = eventRepository.findAllByCarIn(cars)
         deleteEvents(events)
 
-        val routes = routeRepository.findAllByCarInAndPositionsIsNotNull(cars)
+        val routes = routeRepository.findAllByCarIn(cars)
         deleteRoutes(routes)
 
         carRepository.deleteAll(cars)

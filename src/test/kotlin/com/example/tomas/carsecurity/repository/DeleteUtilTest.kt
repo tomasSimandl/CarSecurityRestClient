@@ -88,7 +88,7 @@ class DeleteUtilTest {
         val positions = listOf(position1, position2, position3)
 
         doReturn(events).`when`(eventRepository).findAllByCarIn(cars)
-        doReturn(routes).`when`(routeRepository).findAllByCarInAndPositionsIsNotNull(cars)
+        doReturn(routes).`when`(routeRepository).findAllByCarIn(cars)
         doReturn(positions).`when`(positionRepository).findAllByRouteIn(routes)
 
         deleteUtil.deleteCars(cars)
@@ -97,7 +97,7 @@ class DeleteUtilTest {
 
         inOrder.verify(eventRepository, Times(1)).findAllByCarIn(cars)
         inOrder.verify(eventRepository, Times(1)).deleteAll(events)
-        inOrder.verify(routeRepository, Times(1)).findAllByCarInAndPositionsIsNotNull(cars)
+        inOrder.verify(routeRepository, Times(1)).findAllByCarIn(cars)
         inOrder.verify(positionRepository, Times(1)).findAllByRouteIn(routes)
         inOrder.verify(positionRepository, Times(1)).deleteAll(positions)
         inOrder.verify(routeRepository, Times(1)).deleteAll(routes)

@@ -4,6 +4,7 @@ import com.example.tomas.carsecurity.model.Car
 import com.example.tomas.carsecurity.model.Route
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.PagingAndSortingRepository
 
 /**
@@ -19,7 +20,12 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @param pageable specification of which page of which size will be result.
      * @return page of found routes.
      */
-    fun findAllByCar_IdAndPositionsIsNotNullOrderByTimeDesc(carId: Long, pageable: Pageable): Page<Route>
+
+    @Query("SELECT DISTINCT r.* FROM route r " +
+            "INNER JOIN position p ON r.id = p.route_id " +
+            "WHERE r.car_id = ?1 " +
+            "ORDER BY r.time DESC", nativeQuery = true)
+    fun findAllByCar_IdOrderByTimeDesc(carId: Long, pageable: Pageable): Page<Route>
 
     /**
      * Method return page of routes which were created with users cars.
@@ -29,7 +35,12 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @param pageable specification of which page of which size will be result.
      * @return page of found routes.
      */
-    fun findAllByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(username: String, pageable: Pageable): Page<Route>
+    @Query("SELECT DISTINCT r.* FROM route r " +
+            "INNER JOIN car c ON r.car_id = c.id " +
+            "INNER JOIN position p ON r.id = p.route_id " +
+            "WHERE c.username = ?1 " +
+            "ORDER BY r.time DESC", nativeQuery = true)
+    fun findAllByCar_UsernameOrderByTimeDesc(username: String, pageable: Pageable): Page<Route>
 
     /**
      * Method return number of routes which were created by cars which own [username].
@@ -37,7 +48,11 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @param username of which routes will be calculated.
      * @return number of routes.
      */
-    fun countByCar_UsernameAndPositionsIsNotNull(username: String): Long
+    @Query("SELECT COUNT( DISTINCT r.id) FROM route r " +
+            "INNER JOIN car c ON r.car_id = c.id " +
+            "INNER JOIN position p ON r.id = p.route_id " +
+            "WHERE c.username = ?1", nativeQuery = true)
+    fun countByCar_Username(username: String): Long
 
     /**
      * Method return number of routes which were created by specific car.
@@ -45,7 +60,10 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @param carId is identification of car of which number of routes is requested.
      * @return number of cars routes.
      */
-    fun countByCar_IdAndPositionsIsNotNull(carId: Long): Long
+    @Query("SELECT COUNT( DISTINCT r.id) FROM route r " +
+            "INNER JOIN position p ON r.id = p.route_id " +
+            "WHERE r.car_id = ?1 ", nativeQuery = true)
+    fun countByCar_Id(carId: Long): Long
 
     /**
      * Method return list of routes which were created by any car in [cars].
@@ -53,5 +71,5 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @param cars of which routes will be returned.
      * @return list of found routes.
      */
-    fun findAllByCarInAndPositionsIsNotNull(cars: List<Car>): List<Route>
+    fun findAllByCarIn(cars: List<Car>): List<Route>
 }
