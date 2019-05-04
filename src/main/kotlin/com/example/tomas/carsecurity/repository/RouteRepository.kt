@@ -49,7 +49,7 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @return number of routes.
      */
     @Query("SELECT COUNT( DISTINCT r.id) FROM route r INNER JOIN car c ON r.car_id = c.id INNER JOIN position p ON r.id = p.route_id WHERE c.username = ?1", nativeQuery = true)
-    fun countDistinctByCar_UsernameAndPositionsIsNotNull(username: String): Long
+    fun countUsersRoutes(username: String): Long
 
     /**
      * Method return number of routes which were created by specific car.
@@ -58,7 +58,7 @@ interface RouteRepository : PagingAndSortingRepository<Route, Long> {
      * @return number of cars routes.
      */
     @Query("SELECT COUNT( DISTINCT r.id) FROM route r INNER JOIN position p ON r.id = p.route_id WHERE r.car_id = ?1", nativeQuery = true)
-    fun countDistinctByCar_IdAndPositionsIsNotNull(carId: Long): Long
+    fun countCarsRoutes(carId: Long): Long
 
     /**
      * Method return list of routes which were created by any car in [cars].
