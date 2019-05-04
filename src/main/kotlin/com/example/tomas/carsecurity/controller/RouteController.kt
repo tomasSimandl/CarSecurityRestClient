@@ -8,6 +8,7 @@ import com.example.tomas.carsecurity.repository.PositionRepository
 import com.example.tomas.carsecurity.repository.RouteRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
 import java.time.Instant
@@ -296,7 +297,7 @@ class RouteController(
             return ""
         }
 
-        val routes = routeRepository.countUsersRoutes(principal.name)
+        val routes = routeRepository.findDistinctByCar_UsernameAndPositionsIsNotNullOrderByTimeDesc(principal.name, Pageable.unpaged()).size
         return createJsonSingle("count", routes.toString())
     }
 
@@ -325,7 +326,7 @@ class RouteController(
             return ""
         }
 
-        val routes = routeRepository.countCarsRoutes(carId)
+        val routes = routeRepository.findDistinctByCar_IdAndPositionsIsNotNullOrderByTimeDesc(carId, Pageable.unpaged()).size
         return createJsonSingle("count", routes.toString())
     }
 
